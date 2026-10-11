@@ -3,7 +3,20 @@
 import { Text } from '@react-three/drei';
 import { useMemo } from 'react';
 import type { ZoneConfig } from '@/app/components/WorldCanvas';
-import { RegentEmbassyOne as EmbassyOne } from '@/app/components/zoned/BuildingImports';
+import {
+    RegentEmbassyOne as EmbassyOne,
+    RegentPresidentialCompound as PresidentialCompound,
+} from '@/app/components/zoned/BuildingImports';
+import {
+    BeautySalon,
+    RadioStation,
+} from '../../Buildings/CityLandmarks';
+import {
+    MediumClassShop,
+    MiddleIncomeHouseOne,
+    Pharmacy,
+} from '../../Buildings/CityBuildings';
+import Hotel from '../../West1/Buildings/Hotel';
 
 interface MainlandProps {
     roadConnectionZ?: number;
@@ -25,6 +38,60 @@ const TREE_SPACING = 3.2;
 const BUILDING_CLEARANCE = 3.5;
 const TREE_SEED = 741;
 
+const southernZone: ZoneConfig = {
+    id: 'regent-south',
+    c: [25.5, -50],
+    size: [20, 40],
+    color: '#b9d49c',
+    label: { text: 'REGENT', size: 0.7 },
+};
+
+function makeTreePositions(cx: number, cz: number, width: number, backEdge: number, frontEdge: number, roadX: number): [number, number][] {
+    let seed = TREE_SEED;
+    const random = () => {
+        seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+        return seed / 4294967296;
+    };
+    const buildingPositions: [number, number][] = [
+        [cx - 5.5, cz + 5], [cx + 5.5, cz + 4],
+        [cx - 5.5, cz - 3], [cx + 5.5, cz - 4],
+        [cx - 5.5, cz - 11], [cx + 5.5, cz - 12],
+        [cx - 5.5, cz - 19], [cx + 5.5, cz - 20],
+        [cx - 5.5, cz - 25],
+    ];
+    const positions: [number, number][] = [];
+    const minX = cx - width / 2 + 1.5;
+    const maxX = cx + width / 2 - 1.5;
+    const minZ = backEdge + 1.5;
+    const maxZ = frontEdge - BEACH_DEPTH - 1.5;
+
+    for (let attempt = 0; attempt < 1500 && positions.length < TREE_COUNT; attempt++) {
+        const x = minX + random() * (maxX - minX);
+        const z = minZ + random() * (maxZ - minZ);
+        if (Math.abs(x - roadX) < ROAD_DEPTH / 2 + 1.2) continue;
+        if (buildingPositions.some(([buildingX, buildingZ]) => Math.hypot(x - buildingX, z - buildingZ) < BUILDING_CLEARANCE)) continue;
+        if (positions.some(([treeX, treeZ]) => Math.hypot(x - treeX, z - treeZ) < TREE_SPACING)) continue;
+        positions.push([x, z]);
+    }
+
+    return positions;
+}
+
+function Tree({ position }: { position: [number, number, number] }) {
+    return (
+        <group position={position}>
+            <mesh position={[0, 0.65, 0]} castShadow>
+                <cylinderGeometry args={[0.12, 0.18, 1.3, 8]} />
+                <meshStandardMaterial color="#7c5a3a" />
+            </mesh>
+            <mesh position={[0, 1.75, 0]} castShadow>
+                <coneGeometry args={[0.85, 2.1, 8]} />
+                <meshStandardMaterial color="#3f9142" />
+            </mesh>
+        </group>
+    );
+}
+
 
 // One rectangular plot of land. Its top face sits at y = 0.
 // Camera looks north, so the "back" is the smaller-z edge and the "front" is the larger-z edge.
@@ -41,6 +108,19 @@ export default function Mainland({ roadConnectionZ }: MainlandProps) {
     const roadCenterZ = roadStartZ + roadLength / 2;
 
     const labelZ = backEdge + 1.5;
+    const [southernCx, southernCz] = southernZone.c;
+    const [southernWidth, southernDepth] = southernZone.size;
+    const southernBackEdge = southernCz - southernDepth / 2;
+    const southernFrontEdge = southernCz + southernDepth / 2;
+    const southernRoadStartZ = southernBackEdge + ROAD_INSET;
+    const southernRoadEndZ = backEdge + ROAD_INSET;
+    const southernRoadLength = southernRoadEndZ - southernRoadStartZ;
+    const southernRoadCenterZ = southernRoadStartZ + southernRoadLength / 2;
+    const southernLabelZ = southernBackEdge + 1.5;
+    const treePositions = useMemo(
+        () => makeTreePositions(southernCx, southernCz, southernWidth, southernBackEdge, southernFrontEdge, southernCx),
+        [southernCx, southernCz, southernWidth, southernBackEdge, southernFrontEdge],
+    );
 
     return (
         <group>
@@ -56,7 +136,32 @@ export default function Mainland({ roadConnectionZ }: MainlandProps) {
                 <meshStandardMaterial color="#6b7280" />
             </mesh>
 
+            {/* Southern Regent landmass */}
+            <mesh position={[southernCx, -0.25, southernCz]} receiveShadow>
+                <boxGeometry args={[southernWidth, 0.5, southernDepth]} />
+                <meshStandardMaterial color={southernZone.color} />
+            </mesh>
+
+            <mesh position={[southernCx, 0.03, southernRoadCenterZ]} receiveShadow>
+                <boxGeometry args={[ROAD_DEPTH, 0.06, southernRoadLength]} />
+                <meshStandardMaterial color="#6b7280" />
+            </mesh>
+
             <EmbassyOne position={[20, 0, -15]} />
+
+
+            <BeautySalon position={[29, 0, - 15]} />
+            <RadioStation position={[15, 0, -23]} />
+            <Pharmacy position={[28.5, 0, - 1]} />
+            <MediumClassShop position={[22, 0, - 26]} />
+            <MiddleIncomeHouseOne position={[28.5, 0, 4]} />
+            <MiddleIncomeHouseOne position={[33, 0, 4]} />
+             <Hotel position={[29, 0, - 10]} />
+
+            <PresidentialCompound position={[southernCx + 11, 0, southernCz + 5]} />
+            {treePositions.map(([x, z], index) => (
+                <Tree key={index} position={[x, 0, z]} />
+            ))}
 
             {/* Name, painted on the ground behind the road */}
             {zone.label && (
@@ -71,6 +176,21 @@ export default function Mainland({ roadConnectionZ }: MainlandProps) {
                     anchorY="middle"
                 >
                     {zone.label.text}
+                </Text>
+            )}
+
+            {southernZone.label && (
+                <Text
+                    position={[southernCx, 0.08, southernLabelZ]}
+                    rotation={[-Math.PI / 2, 0, 0]}
+                    fontSize={southernZone.label.size ?? 0.55}
+                    letterSpacing={0.35}
+                    color="#475569"
+                    fillOpacity={0.6}
+                    anchorX="center"
+                    anchorY="middle"
+                >
+                    {southernZone.label.text}
                 </Text>
             )}
         </group>

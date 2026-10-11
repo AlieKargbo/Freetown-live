@@ -2,24 +2,24 @@
 
 import { useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
-import type { BuildingInfo } from '../Player/Info';
+import { Html } from '@react-three/drei';
 
 type Props = {
-  info?: BuildingInfo;
-  emoji?: string;
-  label?: string;
+  emoji: string;
+  label: string;
   height: number; // top of the building (the pin floats a little above this)
   onClick?: () => void;
 };
 
 const LIFT = 0.9; // gap between the building's top and the pin
+const ICON = 36; // px, collapsed circle
+const EXPANDED_MAX = 240; // px, max width of the expanded pill
 const NAME_ZOOM = 24; // camera closer than this => the name is always shown
 const CHECK_EVERY = 0.25; // seconds between zoom checks
 
 // Put one inside a building's <group>. Collapsed = round icon. Expanded = pill that grows to the
 // right with the building's name. Expands on hover, on tap/click (toggle), or when zoomed in.
-export default function BuildingPin({ info, emoji, label, height, onClick }: Props) {
+export default function BuildingPin({ emoji, label, height, onClick }: Props) {
   const [hovered, setHovered] = useState(false);
   const [pinned, setPinned] = useState(false);
   const [zoomedIn, setZoomedIn] = useState(false);
@@ -36,46 +36,35 @@ export default function BuildingPin({ info, emoji, label, height, onClick }: Pro
   });
 
   const expanded = hovered || pinned || zoomedIn;
-  const pinEmoji = info?.emoji ?? emoji ?? '📍';
-  const pinLabel = info?.name ?? label ?? '';
-  const labelWidth = Math.min(Math.max(pinLabel.length * 0.12 + 0.45, 1.5), 3.4);
 
   return (
-    <group
-      position={[0, height + LIFT, 0]}
-      onPointerOver={(event) => {
-        event.stopPropagation();
-        setHovered(true);
-      }}
-      onPointerOut={() => setHovered(false)}
-      onClick={(event) => {
-        event.stopPropagation();
-        setPinned((previous) => !previous);
-        onClick?.();
-      }}
-    >
-      <mesh>
-        <circleGeometry args={[0.4, 32]} />
-        <meshBasicMaterial color={hovered || pinned ? '#facc15' : '#ffffff'} />
-      </mesh>
-      <Text position={[0, 0, 0.02]} fontSize={0.3} anchorX="center" anchorY="middle">
-        {pinEmoji}
-      </Text>
-      {expanded && pinLabel && (
-        <group position={[0, -0.62, 0]}>
-          <mesh position={[0, 0, 0.01]}>
-            <planeGeometry args={[labelWidth + 0.08, 0.46]} />
-            <meshBasicMaterial color="#0f172a" />
-          </mesh>
-          <mesh position={[0, 0, 0.02]}>
-            <planeGeometry args={[labelWidth, 0.38]} />
-            <meshBasicMaterial color="#ffffff" />
-          </mesh>
-          <Text position={[0, 0, 0.03]} fontSize={0.2} color="#0f172a" anchorX="center" anchorY="middle" maxWidth={labelWidth - 0.16}>
-            {pinLabel}
-          </Text>
-        </group>
-      )}
-    </group>
+    <Html position={[0, height + LIFT, 0]} center zIndexRange={[20, 0]}>
+      {/* Fixed-size anchor so the icon stays centred over the building while the pill grows */}
+      <div className="relative" style={{ width: ICON, height: ICON }}>
+        <div
+          onPointerEnter={() => setHovered(true)}
+          onPointerLeave={() => setHovered(false)}
+          onClick={() => {
+            setPinned((p) => !p);
+            onClick?.();
+          }}
+          className={`absolute left-0 top-0 flex cursor-pointer select-none items-center overflow-hidden rounded-full bg-white shadow-lg ring-2 transition-[max-width] duration-300 ease-out ${
+            hovered || pinned ? 'ring-yellow-400' : 'ring-white'
+          }`}
+          style={{ height: ICON, maxWidth: expanded ? EXPANDED_MAX : ICON }}
+        >
+          <span className="flex shrink-0 items-center justify-center text-lg" style={{ width: ICON, height: ICON }}>
+            {emoji}
+          </span>
+          <span
+            className={`whitespace-nowrap pr-3 text-sm font-semibold text-slate-800 transition-opacity duration-200 ${
+              expanded ? 'opacity-100 delay-100' : 'opacity-0'
+            }`}
+          >
+            {label}
+          </span>
+        </div>
+      </div>
+    </Html>
   );
 }

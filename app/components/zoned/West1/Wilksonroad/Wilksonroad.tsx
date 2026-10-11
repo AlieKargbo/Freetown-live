@@ -20,10 +20,38 @@ import {
     ArbadeenWhiteTower as WhiteTower,
     ArbadeenYouthSportCenter as YouthSportCenter,
     GodrichFineDiningRestaurant as FineDiningRestaurant,
-    SharedFamilyRestaurant as FamilyRestaurant,
-    SharedMediumClassShop as MediumClassShop,
-    SharedHighClassShop as HighClassShop,
+
 } from '@/app/components/zoned/BuildingImports';
+
+    // SharedFamilyRestaurant as FamilyRestaurant,
+    // SharedMediumClassShop as MediumClassShop,
+    // SharedHighClassShop as HighClassShop,
+import {
+    GolfClub,
+    AfricanMarket,
+    BeachBuilding,
+    OfficeTowerOne,
+    OfficeTowerTwo,
+    BusStation,
+    RadioStation,
+    MilitaryHQ,
+} from '../../Buildings/CityLandmarks';
+
+
+import {
+  Bank,
+  FamilyRestaurant,
+  HighClassShop,
+  LowClassShop,
+  LowClassShopTwo,
+  MediumClassShop,
+  LowIncomeHouseOne,
+  LowIncomeHouseTwo,
+  MiddleIncomeHouseTwo,
+  HighIncomeHouse,
+} from '../../Buildings/CityBuildings';
+
+
 // import ShoppingMall from './Buildings/ShoppingMall';
 
 // import LocalRestaurant from './Buildings/LocalRestaurant';
@@ -80,12 +108,37 @@ export default function Mainland() {
             <FineDiningRestaurant position={[0, 0, 0]} />
             <FamilyRestaurant position={[18, 0, 0]} />
             {/* <LowClassShop position={[-10, 0, 14]} /> */}
-            <MediumClassShop position={[-3, 0, 14]} />
-            <HighClassShop position={[4, 0, 14]} />
+            {/* <MediumClassShop position={[-3, 0, 14]} />
+            <HighClassShop position={[4, 0, 14]} /> */}
             {/* <LocalRestaurant position={[12, 0, 14]} />
             <EmbassyOne position={[24, 0, 14]} />
             <EmbassyTwo position={[36, 0, 14]} />
             <PresidentialCompound position={[54, 0, 8]} /> */}
+
+
+{/* 
+            <GolfClub position={[-15, 0, -10]} />
+            <AfricanMarket position={[-8, 0, -10]} />
+            <BeachBuilding position={[0, 0, -10]} /> */}
+
+            <OfficeTowerOne position={[8, 0, -10]} />
+            <OfficeTowerTwo position={[14, 0, -10]} />
+{/* 
+            <BusStation position={[-8, 0, -16]} />
+            <MilitaryHQ position={[8, 0, -16]} /> */}
+
+
+            <Bank position={[-10, 0, -10]} />
+            <FamilyRestaurant position={[-2, 0, -10]} />
+            <HighClassShop position={[7, 0, -10]} />
+            {/* <LowClassShop position={[-10, 0, -19]} />
+            <LowClassShopTwo position={[-5, 0, -19]} />
+             */}
+
+            <LowIncomeHouseOne position={[-10, 0, -29]} />
+            <LowIncomeHouseTwo position={[-5, 0, -29]} />
+            <MiddleIncomeHouseTwo position={[-15, 0, - 29]} />
+
 
             {/* Name, painted on the ground behind the road */}
             {zone.label && (

@@ -4,8 +4,8 @@ import { Text } from '@react-three/drei';
 import { useMemo } from 'react';
 import type { ZoneConfig } from '@/app/components/zoned/BuildingImports';
 
-import LeicesterPeak from './Landmarks/LeicesterPeak';
-import SugarLoaf from './Landmarks/SugarLoaf';
+import LeicesterPeak from '../Landmarks/LeicesterPeak';
+import SugarLoaf from '../Landmarks/SugarLoaf';
 //import Mountain from './Landmarks/';
 import { HillstationEmbassyTwo as EmbassyTwo } from '@/app/components/zoned/BuildingImports';
 

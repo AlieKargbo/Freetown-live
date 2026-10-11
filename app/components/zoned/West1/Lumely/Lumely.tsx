@@ -4,16 +4,32 @@
 import { Text } from '@react-three/drei';
 import { useMemo } from 'react';
 import type { ZoneConfig } from '../../../WorldCanvas';
-import NightClub from './Nightclub';
-import GulfSquare from './lumely/Gulfpark';
-import Gym from './lumely/Gym';
-import Hotel from './lumely/Hotel';
-import IceCreamCafe from './lumely/Icecreamcafe';
-import FishGrill from './lumely/Fishgrill';
-import LifeguardTower from './lumely/Lifeguard';
-import SurfShop from './lumely/Surfshop';
-import TikiBar from './lumely/Tikibar';
-import Lighthouse from './Lighthouse';
+import NightClub from '../Buildings/Nightclub';
+import GulfSquare from '../Buildings/Gulfpark';
+import Gym from '../Buildings/Gym';
+import Hotel from '../Buildings/Hotel';
+import IceCreamCafe from '../Buildings/Icecreamcafe';
+import FishGrill from '../Buildings/Fishgrill';
+import LifeguardTower from '../Buildings/Lifeguard';
+import SurfShop from '../Buildings/Surfshop';
+import TikiBar from '../Buildings/Tikibar';
+import Lighthouse from '../Buildings/Lighthouse';
+import {
+    Bank,
+    LowClassShop,
+    LowClassShopTwo,
+    LowIncomeHouseOne,
+    LowIncomeHouseTwo,
+    MediumClassShop,
+    MiddleIncomeHouseOne,
+    MiddleIncomeHouseTwo,
+    Pharmacy,
+} from '../../Buildings/CityBuildings';
+import EmptyHousePlot from '../../Buildings/EmptyHousePlot';
+
+interface MainlandProps {
+    roadConnectionZ?: number;
+}
 
 export const zone: ZoneConfig = {
     id: 'mainland',
@@ -21,6 +37,22 @@ export const zone: ZoneConfig = {
     size: [50, 20], // [width, depth]
     color: '#b9d49c',
     label: { text: 'LUMELY', size: 0.7 },
+};
+
+export const lumely2Zone: ZoneConfig = {
+    id: 'lumely-2',
+    c: [40, 20],
+    size: [25, 20],
+    color: '#b9d49c',
+    label: { text: 'LUMELY 2', size: 0.7 },
+};
+
+const malamaZone: ZoneConfig = {
+    id: 'malama',
+    c: [47, -10],
+    size: [20, 40],
+    color: '#b9d49c',
+    label: { text: 'Malama', size: 0.7 },
 };
 
 const BEACH_DEPTH = 2;
@@ -76,7 +108,7 @@ const TREE_SEED = 741;
 
 // One rectangular plot of land. Its top face sits at y = 0.
 // Camera looks north, so the "back" is the smaller-z edge and the "front" is the larger-z edge.
-export default function Mainland() {
+export default function Mainland({ roadConnectionZ }: MainlandProps = {}) {
     const [cx, cz] = zone.c;
     const [width, depth] = zone.size;
 
@@ -86,6 +118,21 @@ export default function Mainland() {
     const labelZ = (backEdge + (roadZ - ROAD_DEPTH / 2)) / 2; // midway between the back edge and the road
     const backRowZ = cz - 3.8;
     const frontRowZ = cz + 4.5;
+    const [lumely2Cx, lumely2Cz] = lumely2Zone.c;
+    const [lumely2Width, lumely2Depth] = lumely2Zone.size;
+    const lumely2BackEdge = lumely2Cz - lumely2Depth / 2;
+    const lumely2RoadZ = lumely2Cz;
+    const lumely2LabelZ =
+        (lumely2BackEdge + (lumely2RoadZ - ROAD_DEPTH / 2)) / 2;
+    const [malamaCx, malamaCz] = malamaZone.c;
+    const [malamaWidth, malamaDepth] = malamaZone.size;
+    const malamaBackEdge = malamaCz - malamaDepth / 2;
+    const malamaFrontEdge = malamaCz + malamaDepth / 2;
+    const malamaRoadStartZ = malamaBackEdge + ROAD_INSET;
+    const malamaRoadEndZ = roadConnectionZ ?? malamaFrontEdge;
+    const malamaRoadLength = malamaRoadEndZ - malamaRoadStartZ;
+    const malamaRoadCenterZ = malamaRoadStartZ + malamaRoadLength / 2;
+    const malamaLabelZ = malamaBackEdge + 1.5;
     // const treePositions = useMemo(
     //     () => makeTreePositions(cx, cz, width, backEdge, frontEdge, roadZ),
     //     [cx, cz, width, backEdge, frontEdge, roadZ],
@@ -105,6 +152,58 @@ export default function Mainland() {
                 <meshStandardMaterial color="#6b7280" />
             </mesh>
 
+            {/* Lumely 2 parcel */}
+            <mesh position={[lumely2Cx, -0.25, lumely2Cz]} receiveShadow>
+                <boxGeometry args={[lumely2Width, 0.5, lumely2Depth]} />
+                <meshStandardMaterial color={lumely2Zone.color} />
+            </mesh>
+
+            <mesh position={[lumely2Cx, 0.03, lumely2RoadZ]} receiveShadow>
+                <boxGeometry args={[lumely2Width, 0.06, ROAD_DEPTH]} />
+                <meshStandardMaterial color="#6b7280" />
+            </mesh>
+
+            {lumely2Zone.label && (
+                <Text
+                    position={[lumely2Cx, 0.08, lumely2LabelZ]}
+                    rotation={[-Math.PI / 2, 0, 0]}
+                    fontSize={lumely2Zone.label.size ?? 0.55}
+                    letterSpacing={0.35}
+                    color="#475569"
+                    fillOpacity={0.6}
+                    anchorX="center"
+                    anchorY="middle"
+                >
+                    {lumely2Zone.label.text}
+                </Text>
+            )}
+
+            {/* Malama parcel */}
+            <mesh position={[malamaCx, -0.25, malamaCz]} receiveShadow>
+                <boxGeometry args={[malamaWidth, 0.5, malamaDepth]} />
+                <meshStandardMaterial color={malamaZone.color} />
+            </mesh>
+
+            <mesh position={[malamaCx, 0.03, malamaRoadCenterZ]} receiveShadow>
+                <boxGeometry args={[ROAD_DEPTH, 0.06, malamaRoadLength]} />
+                <meshStandardMaterial color="#6b7280" />
+            </mesh>
+
+            {malamaZone.label && (
+                <Text
+                    position={[malamaCx, 0.08, malamaLabelZ]}
+                    rotation={[-Math.PI / 2, 0, 0]}
+                    fontSize={malamaZone.label.size ?? 0.55}
+                    letterSpacing={0.35}
+                    color="#475569"
+                    fillOpacity={0.6}
+                    anchorX="center"
+                    anchorY="middle"
+                >
+                    {malamaZone.label.text}
+                </Text>
+            )}
+
             {/* Beach along the front */}
             <mesh position={[cx, 0.03, frontEdge - BEACH_DEPTH / 2]} receiveShadow>
                 <boxGeometry args={[width, 0.06, BEACH_DEPTH]} />
@@ -122,6 +221,49 @@ export default function Mainland() {
             <FishGrill position={[cx + 0, 0, backRowZ]} />
             <SurfShop position={[cx - 4, 0, backRowZ]} />
             <IceCreamCafe position={[cx - 12, 0, backRowZ]} />
+
+            <LowClassShop position={[lumely2Cx + 3.5, 0, lumely2Cz - 5]} />
+            <LowClassShop position={[lumely2Cx - 3, 0, lumely2Cz - 5]} />
+            <LowClassShop position={[lumely2Cx - 9, 0, lumely2Cz - 5]} />
+            <MediumClassShop position={[lumely2Cx - 7, 0, lumely2Cz + 5]} />
+            <Pharmacy position={[lumely2Cx, 0, lumely2Cz + 5]} />
+            <Bank position={[lumely2Cx + 5, 0, lumely2Cz + 5]} />
+
+            {/* Malama buildings */}
+            <LowClassShop position={[malamaCx - 7.2, 0, malamaCz + 20]} />
+            <LowClassShop position={[malamaCx - 2.8, 0, malamaCz + 20]} />
+            <LowClassShop position={[malamaCx - 7.2, 0, malamaCz + 15]} />
+            <LowClassShop position={[malamaCx - 2.8, 0, malamaCz + 15]} />
+            <LowClassShop position={[malamaCx - 7.2, 0, malamaCz + 10]} />
+            <LowClassShop position={[malamaCx - 2.8, 0, malamaCz + 10]} />
+
+            <LowIncomeHouseOne position={[malamaCx - 7.2, 0, malamaCz + 5]} />
+            <LowIncomeHouseTwo position={[malamaCx - 2.8, 0, malamaCz + 5]} />
+            <LowIncomeHouseTwo position={[malamaCx - 7.2, 0, malamaCz]} />
+            <LowIncomeHouseOne position={[malamaCx - 2.8, 0, malamaCz]} />
+            <LowIncomeHouseOne position={[malamaCx - 7.2, 0, malamaCz - 5]} />
+            <LowIncomeHouseTwo position={[malamaCx - 2.8, 0, malamaCz - 5]} />
+            <LowIncomeHouseTwo position={[malamaCx - 7.2, 0, malamaCz - 10]} />
+            <EmptyHousePlot position={[malamaCx - 2.8, 0, malamaCz - 15]} />
+            <EmptyHousePlot position={[malamaCx - 7.2, 0, malamaCz - 15]} />
+            <EmptyHousePlot position={[malamaCx - 2.8, 0, malamaCz - 10]} />
+
+            <LowClassShopTwo position={[malamaCx + 3, 0, malamaCz + 20]} />
+            <LowClassShopTwo position={[malamaCx + 7.5, 0, malamaCz + 20]} />
+            <LowClassShopTwo position={[malamaCx + 3, 0, malamaCz + 15]} />
+            <LowClassShopTwo position={[malamaCx + 7.5, 0, malamaCz + 15]} />
+            <LowClassShopTwo position={[malamaCx + 3, 0, malamaCz + 10]} />
+            <LowClassShopTwo position={[malamaCx + 7.5, 0, malamaCz + 10]} />
+            <LowClassShopTwo position={[malamaCx + 3, 0, malamaCz + 5]} />
+            <LowClassShopTwo position={[malamaCx + 7.5, 0, malamaCz + 5]} />
+            <MiddleIncomeHouseOne position={[malamaCx + 3, 0, malamaCz]} />
+            <MiddleIncomeHouseTwo position={[malamaCx + 7.5, 0, malamaCz]} />
+            <MiddleIncomeHouseTwo position={[malamaCx + 3, 0, malamaCz - 5]} />
+            <MiddleIncomeHouseOne position={[malamaCx + 7.2, 0, malamaCz - 5]} />
+            <EmptyHousePlot position={[malamaCx + 3, 0, malamaCz - 10]} />
+            <EmptyHousePlot position={[malamaCx + 7.5, 0, malamaCz - 10]} />
+            <EmptyHousePlot position={[malamaCx + 3, 0, malamaCz - 15]} />
+            <EmptyHousePlot position={[malamaCx + 7.5, 0, malamaCz - 15]} />
             {/* Baskball court representing sport sport zone */}
 
             {/* Trees fill the open strip between the building rows */}

@@ -107,7 +107,6 @@ export default function WorldCanvas() {
 
                 {/* Land Mass */}
                 <Mainland />
-                {/* <Lumely2 />*/}
                 <Arbadeen />
                 {/* <Godrich /> */}
                 <Regent />

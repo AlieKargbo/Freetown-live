@@ -17,6 +17,14 @@ export const zone: ZoneConfig = {
     label: { text: 'Godrich', size: 0.7 },
 };
 
+const leicesterZone: ZoneConfig = {
+    id: 'leicester-peak',
+    c: [85, -10],
+    size: [50, 40],
+    color: '#b9d49c',
+    label: { text: 'LeicesterPeak', size: 0.7 },
+};
+
 const BEACH_DEPTH = 2;
 const ROAD_DEPTH = 1.2;
 
@@ -31,6 +39,13 @@ export default function Mainland() {
     const roadZ = cz;
     const labelZ = (backEdge + (roadZ - ROAD_DEPTH / 2)) / 2; // midway between the back edge and the road
 
+    const [leicesterX, leicesterZ] = leicesterZone.c;
+    const [leicesterWidth, leicesterDepth] = leicesterZone.size;
+    const leicesterBackEdge = leicesterZ - leicesterDepth / 2;
+    const leicesterRoadZ = leicesterZ;
+    const leicesterLabelZ =
+        (leicesterBackEdge + (leicesterRoadZ - ROAD_DEPTH / 2)) / 2;
+
     return (
         <group>
             {/* Land */}
@@ -42,6 +57,17 @@ export default function Mainland() {
             {/* Road through the middle of the land mass */}
             <mesh position={[cx, 0.03, roadZ]} receiveShadow>
                 <boxGeometry args={[width, 0.06, ROAD_DEPTH]} />
+                <meshStandardMaterial color="#6b7280" />
+            </mesh>
+
+            {/* Leicester Peak landmass */}
+            <mesh position={[leicesterX, -0.25, leicesterZ]} receiveShadow>
+                <boxGeometry args={[leicesterWidth, 0.5, leicesterDepth]} />
+                <meshStandardMaterial color={leicesterZone.color} />
+            </mesh>
+
+            <mesh position={[leicesterX, 0.03, leicesterRoadZ]} receiveShadow>
+                <boxGeometry args={[leicesterWidth, 0.06, ROAD_DEPTH]} />
                 <meshStandardMaterial color="#6b7280" />
             </mesh>
 
@@ -69,6 +95,21 @@ export default function Mainland() {
                     anchorY="middle"
                 >
                     {zone.label.text}
+                </Text>
+            )}
+
+            {leicesterZone.label && (
+                <Text
+                    position={[leicesterX, 0.08, leicesterLabelZ]}
+                    rotation={[-Math.PI / 2, 0, 0]}
+                    fontSize={leicesterZone.label.size ?? 0.55}
+                    letterSpacing={0.35}
+                    color="#475569"
+                    fillOpacity={0.6}
+                    anchorX="center"
+                    anchorY="middle"
+                >
+                    {leicesterZone.label.text}
                 </Text>
             )}
         </group>

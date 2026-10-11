@@ -4,25 +4,41 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
-import { ArbadeenCivic as Civic } from '@/app/components/zoned/BuildingImports';
+import {
+    ArbadeenCivic as Civic,
+    LumelyWorld as Mainland,
+    lumelyZone,
+    lumely2Zone,
+    ArbadeenWorld as Arbadeen,
+    GodrichWorld as Godrich,
+    godrichZone,
+    RegentWorld as Regent,
+    regentZone,
+    WilksonRoadWorld as Wilksonroad,
+    wilksonZone,
+    CongoCrossWorld as Congocross,
+    congoZone,
+    MurrytongWorld as Murrytong,
+    murrytongZone,
+    HillstationWorld as Hillstation,
+    LeicesterpeakWorld as Leicesterpeak,
+} from '@/app/components/zoned/BuildingImports';
 //import Hud from './Hud';
 
 //Zones
-import Mainland, { zone as lumelyZone } from './zoned/West1/Lumely/Lumely';
-import Lumely2, { zone as lumely2Zone } from './zoned/West1/Lumely/Lumely2';
-import Arbadeen from './zoned/Arbadeen/Arbadeen';
-import Godrich, { zone as godrichZone } from './zoned/Godrich/Godrich';
-import Regent, { zone as regentZone } from './zoned/Regent/Regent';
-import Wilksonroad, { zone as wilksonZone } from './zoned/Wilksonroad/Wilksonroad';
-import Congocross, { zone as congoZone } from './zoned/Congocross/Congocross';
-import Murrytong, { zone as murrytongZone } from './zoned/Congocross/Murrytong';
-import Regent2 from './zoned/Regent/Regent2';
-import Malama from './zoned/West1/Lumely/Malama'
-import Hillstation from './zoned/West2/Hillstation/Hillstation'
-import Leicesterpeak from './zoned/West2/Hillstation/Leicesterpeak '
-import InteriorScene from './utils/InteriorScene';
-import BuildingPopup from './utils/BuildingPopup';
-import InteriorHud from './utils/InteriorHud';
+// import Mainland, { zone as lumelyZone } from './zoned/West1/Lumely/Lumely';
+// import Arbadeen from './zoned/Arbadeen/Arbadeen';
+// import Godrich, { zone as godrichZone } from './zoned/Godrich/Godrich';
+// import Regent, { zone as regentZone } from './zoned/Regent/Regent';
+// import Wilksonroad, { zone as wilksonZone } from './zoned/Wilksonroad/Wilksonroad';
+// import Congocross, { zone as congoZone } from './zoned/Congocross/Congocross';
+// import Murrytong, { zone as murrytongZone } from './zoned/Congocross/Murrytong';
+// import Regent2 from './zoned/Regent/Regent2';
+// import Hillstation from './zoned/West2/Hillstation/Hillstation'
+// import Leicesterpeak from './zoned/West2/Hillstation/Leicesterpeak '
+// import InteriorScene from './utils/InteriorScene';
+// import BuildingPopup from './utils/BuildingPopup';
+// import InteriorHud from './utils/InteriorHud';
 import { useGame } from './Player/Store';
 // View from the screenshot: looking north from the south, tilted ~49° from straight down.
 // The tilt is locked; the player can only pan and zoom.
@@ -166,17 +182,13 @@ function RoadConnections() {
     );
 }
 
-
-
 function LumelyConnectorRoad() {
     const roadWidth = 1.2;
     const roadY = 0.065;
-
     // Fixed world coordinates for the L-shaped road.
     const cornerX = 4;
     const cornerZ = 29;
     const endX = 28;
-
 
     return (
         <group>
@@ -225,8 +237,7 @@ export default function WorldCanvas() {
                 </Text>
 
                 {/* Land Mass */}
-                <Mainland />
-                <Lumely2 />
+                <Mainland roadConnectionZ={godrichZone.c[1]} />
                 <Arbadeen />
                 <Godrich />
                 <Regent
@@ -237,8 +248,6 @@ export default function WorldCanvas() {
                 <Murrytong />
                 <RoadConnections />
                 <Roundabout />
-                <Malama roadConnectionZ={godrichZone.c[1]} />
-                <Regent2 roadConnectionZ={regentZone.c[1] - regentZone.size[1] / 2 + 2.4} />
                 {/* <LumelyConnectorRoad /> */}
                 <Hillstation />
                 <Leicesterpeak />
