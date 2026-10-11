@@ -1,24 +1,27 @@
 'use client';
 
+//Lumely Zone, Arbadeen Zone, Wilkson Road Zone one building folder
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMemo } from 'react';
 import type { ZoneConfig } from '../../WorldCanvas';
 import { zone as murrytongZone } from '../Congocross/Murrytong';
-import Church from './Buildings/Church';
-import GrammarSchool from './Buildings/GrammarSchool';
-import Hospital from './Buildings/Hospital';
-import Mosque from './Buildings/Mosque';
-import NurserySchool from './Buildings/NurserySchool';
-import PoliceStation from './Buildings/PoliceStation';
-import PrimarySchool from './Buildings/PrimarySchool';
-import ScienceAcademy from './Buildings/ScienceAcademy';
-import SecondarySchool from './Buildings/SecondarySchool';
-import Stadium from './Buildings/Stadium';
-import TechnicalCollege from './Buildings/TechnicalCollege';
-import UniversityHall from './Buildings/UniversityHall';
-import WhiteTower from './Buildings/WhiteTower';
-import YouthSportCenter from './Buildings/YouthSportCenter';
+import {
+    ArbadeenChurch as Church,
+    ArbadeenGrammarSchool as GrammarSchool,
+    ArbadeenHospital as Hospital,
+    ArbadeenMosque as Mosque,
+    ArbadeenNurserySchool as NurserySchool,
+    ArbadeenPoliceStation as PoliceStation,
+    ArbadeenPrimarySchool as PrimarySchool,
+    ArbadeenScienceAcademy as ScienceAcademy,
+    ArbadeenSecondarySchool as SecondarySchool,
+    ArbadeenStadium as Stadium,
+    ArbadeenTechnicalCollege as TechnicalCollege,
+    ArbadeenUniversityHall as UniversityHall,
+    ArbadeenWhiteTower as WhiteTower,
+    ArbadeenYouthSportCenter as YouthSportCenter,
+} from '@/app/components/zoned/BuildingImports';
 
 export const zone: ZoneConfig = {
     id: 'Aberdeen',

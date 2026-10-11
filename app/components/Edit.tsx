@@ -5,7 +5,7 @@ import { OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
 //Zones
-import Mainland, { zone as lumelyZone } from './zoned/Lumely';
+import Mainland, { zone as lumelyZone } from './zoned/West1/Lumely';
 import Regent, { zone as regentZone } from './zoned/Regent';
 import Wilksonroad, { zone as wilksonZone } from './zoned/Wilksonroad';
 import Congocross, { zone as congoZone } from './zoned/Congocross/Congocross';

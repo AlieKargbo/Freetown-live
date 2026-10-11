@@ -2,8 +2,8 @@
 
 import { Text } from '@react-three/drei';
 import { useMemo } from 'react';
-import type { ZoneConfig } from '../../WorldCanvas';
-import EmbassyOne from './Buildings/EmbassyOne';
+import type { ZoneConfig } from '@/app/components/zoned/BuildingImports';
+import { RegentEmbassyOne as EmbassyOne } from '@/app/components/zoned/BuildingImports';
 
 interface MainlandProps {
     roadConnectionZ?: number;

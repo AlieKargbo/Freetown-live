@@ -4,12 +4,12 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
-import Civic from './zoned/Arbadeen/Buildings/Civic';
+import { ArbadeenCivic as Civic } from '@/app/components/zoned/BuildingImports';
 //import Hud from './Hud';
 
 //Zones
-import Mainland, { zone as lumelyZone } from './zoned/Lumely/Lumely';
-import Lumely2, { zone as lumely2Zone } from './zoned/Lumely/Lumely2';
+import Mainland, { zone as lumelyZone } from './zoned/West1/Lumely/Lumely';
+import Lumely2, { zone as lumely2Zone } from './zoned/West1/Lumely/Lumely2';
 import Arbadeen from './zoned/Arbadeen/Arbadeen';
 import Godrich, { zone as godrichZone } from './zoned/Godrich/Godrich';
 import Regent, { zone as regentZone } from './zoned/Regent/Regent';
@@ -17,10 +17,13 @@ import Wilksonroad, { zone as wilksonZone } from './zoned/Wilksonroad/Wilksonroa
 import Congocross, { zone as congoZone } from './zoned/Congocross/Congocross';
 import Murrytong, { zone as murrytongZone } from './zoned/Congocross/Murrytong';
 import Regent2 from './zoned/Regent/Regent2';
-import Malama from './zoned/Lumely/Malama'
-import Hillstation from './zoned/Hillstation/Hillstation'
-import Leicesterpeak from './zoned/Hillstation/Leicesterpeak '
-
+import Malama from './zoned/West1/Lumely/Malama'
+import Hillstation from './zoned/West2/Hillstation/Hillstation'
+import Leicesterpeak from './zoned/West2/Hillstation/Leicesterpeak '
+import InteriorScene from './utils/InteriorScene';
+import BuildingPopup from './utils/BuildingPopup';
+import InteriorHud from './utils/InteriorHud';
+import { useGame } from './Player/Store';
 // View from the screenshot: looking north from the south, tilted ~49° from straight down.
 // The tilt is locked; the player can only pan and zoom.
 // const TILT = 0.85; // radians from straight-down

@@ -2,10 +2,12 @@
 
 import { Text } from '@react-three/drei';
 import { useMemo } from 'react';
-import type { ZoneConfig } from '../../WorldCanvas';
-import SecondarySchool from '../Arbadeen/Buildings/SecondarySchool';
-import FineDiningRestaurant from '../Godrich/Buildings/FineDiningRestaurant';
-import Church from './Buildings/Church';
+import type { ZoneConfig } from '@/app/components/zoned/BuildingImports';
+import {
+    ArbadeenSecondarySchool as SecondarySchool,
+    GodrichFineDiningRestaurant as FineDiningRestaurant,
+    GodrichChurch as Church,
+} from '@/app/components/zoned/BuildingImports';
 
 export const zone: ZoneConfig = {
     id: 'mainland',

@@ -3,8 +3,8 @@
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMemo } from 'react';
-import type { ZoneConfig } from '../../WorldCanvas';
-import GrammarSchool from '../Arbadeen/Buildings/GrammarSchool';
+import type { ZoneConfig } from '@/app/components/zoned/BuildingImports';
+import { ArbadeenGrammarSchool as GrammarSchool } from '@/app/components/zoned/BuildingImports';
 
 export const zone: ZoneConfig = {
     id: 'lumely-2',

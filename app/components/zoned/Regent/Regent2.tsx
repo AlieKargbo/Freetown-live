@@ -2,20 +2,22 @@
 
 import { Text } from '@react-three/drei';
 import { useMemo } from 'react';
-import type { ZoneConfig } from '../../WorldCanvas';
-import NightClub from '../Lumely/Nightclub';
-import GulfSquare from '../Lumely/lumely/Gulfpark';
-import Gym from '../Lumely/lumely/Gym';
-import Hotel from '../Lumely/lumely/Hotel';
-import IceCreamCafe from '../Lumely/lumely/Icecreamcafe';
-import FishGrill from '../Lumely/lumely/Fishgrill';
-import LifeguardTower from '../Lumely/lumely/Lifeguard';
-import SurfShop from '../Lumely/lumely/Surfshop';
-import TikiBar from '../Lumely/lumely/Tikibar';
-import Lighthouse from '../Lumely/Lighthouse';
-import EmbassyOne from './Buildings/EmbassyOne';
+import type { ZoneConfig } from '@/app/components/zoned/BuildingImports';
+import {
+    LumelyNightclub as NightClub,
+    LumelyGulfpark as GulfSquare,
+    LumelyGym as Gym,
+    LumelyHotel as Hotel,
+    LumelyIcecreamcafe as IceCreamCafe,
+    LumelyFishgrill as FishGrill,
+    LumelyLifeguard as LifeguardTower,
+    LumelySurfshop as SurfShop,
+    LumelyTikibar as TikiBar,
+    LumelyLighthouse as Lighthouse,
+    RegentEmbassyOne as EmbassyOne,
+    RegentPresidentialCompound as PresidentialCompound,
+} from '@/app/components/zoned/BuildingImports';
 
-import PresidentialCompound from './Buildings/PresidentialCompound';
 
 interface MainlandProps {
     roadConnectionZ?: number;

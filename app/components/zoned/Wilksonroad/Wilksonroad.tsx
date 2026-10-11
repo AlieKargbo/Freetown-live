@@ -1,27 +1,31 @@
 'use client';
 
+//Lumely Zone, Arbadeen Zone, Wilkson Road Zone one building folder
 import { Text } from '@react-three/drei';
 import { useMemo } from 'react';
-import type { ZoneConfig } from '../../WorldCanvas';
-import Church from '../Arbadeen/Buildings/Church';
-import GrammarSchool from '../Arbadeen/Buildings/GrammarSchool';
-import Hospital from '../Arbadeen/Buildings/Hospital';
-import Mosque from '../Arbadeen/Buildings/Mosque';
-import NurserySchool from '../Arbadeen/Buildings/NurserySchool';
-import PoliceStation from '../Arbadeen/Buildings/PoliceStation';
-import PrimarySchool from '../Arbadeen/Buildings/PrimarySchool';
-import ScienceAcademy from '../Arbadeen/Buildings/ScienceAcademy';
-import SecondarySchool from '../Arbadeen/Buildings/SecondarySchool';
-import Stadium from '../Arbadeen/Buildings/Stadium';
-import TechnicalCollege from '../Arbadeen/Buildings/TechnicalCollege';
-import UniversityHall from '../Arbadeen/Buildings/UniversityHall';
-import WhiteTower from '../Arbadeen/Buildings/WhiteTower';
-import YouthSportCenter from '../Arbadeen/Buildings/YouthSportCenter';
+import type { ZoneConfig } from '@/app/components/zoned/BuildingImports';
+import {
+    ArbadeenChurch as Church,
+    ArbadeenGrammarSchool as GrammarSchool,
+    ArbadeenHospital as Hospital,
+    ArbadeenMosque as Mosque,
+    ArbadeenNurserySchool as NurserySchool,
+    ArbadeenPoliceStation as PoliceStation,
+    ArbadeenPrimarySchool as PrimarySchool,
+    ArbadeenScienceAcademy as ScienceAcademy,
+    ArbadeenSecondarySchool as SecondarySchool,
+    ArbadeenStadium as Stadium,
+    ArbadeenTechnicalCollege as TechnicalCollege,
+    ArbadeenUniversityHall as UniversityHall,
+    ArbadeenWhiteTower as WhiteTower,
+    ArbadeenYouthSportCenter as YouthSportCenter,
+    GodrichFineDiningRestaurant as FineDiningRestaurant,
+    SharedFamilyRestaurant as FamilyRestaurant,
+    SharedMediumClassShop as MediumClassShop,
+    SharedHighClassShop as HighClassShop,
+} from '@/app/components/zoned/BuildingImports';
 // import ShoppingMall from './Buildings/ShoppingMall';
-import FineDiningRestaurant from '../Godrich/Buildings/FineDiningRestaurant';
-import FamilyRestaurant from './Buildings/FamilyRestaurant';
-import MediumClassShop from './Buildings/MediumClassShop';
-import HighClassShop from './Buildings/HighClassShop';
+
 // import LocalRestaurant from './Buildings/LocalRestaurant';
 // import EmbassyOne from './Buildings/EmbassyOne';
 // import EmbassyTwo from './Buildings/EmbassyTwo';
