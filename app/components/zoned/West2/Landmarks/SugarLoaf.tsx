@@ -3,13 +3,17 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import BuildingPin from '../../../utils/BuildingPins';
 //import BuildingPin from '../buildings/BuildingPin';
 //import type { BuildingInfo } from '../buildings/info';
 import { buildMountain } from './mountain';
 import { Inst, Trees, scatterPoints, type Item } from './Scatter';
 
 type V3 = [number, number, number];
-type Props = { position: [number, number, number] };
+type Props = {
+  position: [number, number, number];
+  showPin?: boolean;
+};
 
 // export const info: BuildingInfo = {
 //   id: 'sugar-loaf',
@@ -83,7 +87,7 @@ function Cloud({ base, phase }: { base: V3; phase: number }) {
 
 // Sugar Loaf: a steep forested dome with a bare granite top, a Sierra Leone flag on the summit,
 // boulders, a base camp with tents and a campfire, and clouds drifting past.
-export default function SugarLoaf({ position }: Props) {
+export default function SugarLoaf({ position, showPin = false }: Props) {
   const m = useMemo(
     () =>
       buildMountain({
@@ -172,7 +176,14 @@ export default function SugarLoaf({ position }: Props) {
       <Cloud base={[-1.5, H + 1.2, 0.8]} phase={0} />
       <Cloud base={[2.5, H - 0.4, -1.5]} phase={2} />
 
-      {/* <BuildingPin info={info} height={SUGAR_LOAF_HEIGHT} /> */}
+      {showPin && (
+        <BuildingPin
+          emoji="🏔️"
+          label="Sugar Loaf"
+          nameOverride="Sugar Loaf"
+          height={SUGAR_LOAF_HEIGHT}
+        />
+      )}
     </group>
   );
 }

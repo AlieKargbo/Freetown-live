@@ -3,6 +3,7 @@
 import { Text } from '@react-three/drei';
 import { useMemo } from 'react';
 import type { ZoneConfig } from '@/app/components/zoned/BuildingImports';
+import { scatterGroundPoints, Trees } from '@/app/components/zoned/West2/Landmarks/Scatter';
 
 import LeicesterPeak from '../Landmarks/LeicesterPeak';
 import SugarLoaf from '../Landmarks/SugarLoaf';
@@ -35,6 +36,21 @@ export default function Mainland() {
     const frontEdge = cz + depth / 2;
     const roadZ = backEdge + ROAD_INSET;
     const labelZ = (backEdge + (roadZ - ROAD_DEPTH / 2)) / 2; // midway between the back edge and the road
+    const vegetation = useMemo(() => scatterGroundPoints(
+        { minX: cx - width / 2, maxX: cx + width / 2, minZ: backEdge, maxZ: frontEdge },
+        {
+            count: 12,
+            seed: 888,
+            minSpacing: 3.5,
+            edgePadding: 2,
+            obstacles: [
+                { x: -4, z: cz - 10, radius: 10 },
+                { x: cx - 5.5, z: cz + 5, radius: 3.5 },
+                { x: cx, z: labelZ, radius: 5 },
+            ],
+            roads: [{ x: cx, z: cz, width, depth: ROAD_DEPTH }],
+        },
+    ), [cx, cz, width, backEdge, frontEdge, labelZ]);
 
     return (
         <group>
@@ -51,10 +67,12 @@ export default function Mainland() {
             </mesh>
 
             <LeicesterPeak position={[-4, 0, cz - 10]} />
-            <SugarLoaf position={[70, 0, cz - 10]} />
+            <SugarLoaf position={[70, 0, cz - 10]} showPin />
             <SugarLoaf position={[60, 0, cz - 10]} />
             <SugarLoaf position={[77, 0, cz + 1]} />
-            <EmbassyTwo position={[cx - 5.5, 0, cz + 5]} />
+            <EmbassyTwo position={[cx - 5.5, 0, cz + 5]} nameOverride="US Embassy Freetown" />
+
+            <Trees points={vegetation} seed={888} size={0.95} />
 
             {/* Name, painted on the ground behind the road */}
             {zone.label && (

@@ -37,7 +37,10 @@ export const info: BuildingInfo = {
 };
 
 
-type Props = { position: [number, number, number] };
+type Props = {
+  position: [number, number, number];
+  nameOverride?: string;
+};
 
 export const WHITE_TOWER_HEIGHT = 6.6;
 const W = 2;
@@ -47,7 +50,7 @@ const FLOORS = 10;
 
 // White rectangular multi-storey block: ten floors, window grids on the front and sides,
 // rooftop lift housing and a red aircraft-warning light on the antenna.
-export default function WhiteTower({ position }: Props) {
+export default function WhiteTower({ position, nameOverride }: Props) {
   const front = D / 2;
 
   return (
@@ -92,7 +95,7 @@ export default function WhiteTower({ position }: Props) {
         <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={1.5} />
       </mesh>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={WHITE_TOWER_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={WHITE_TOWER_HEIGHT} nameOverride={nameOverride} />
     </group>
   );
 }

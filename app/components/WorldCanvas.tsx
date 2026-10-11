@@ -40,6 +40,7 @@ import {
 // import BuildingPopup from './utils/BuildingPopup';
 // import InteriorHud from './utils/InteriorHud';
 import { useGame } from './Player/Store';
+import { BuildingNameScope } from './utils/BuildingNameScope';
 // View from the screenshot: looking north from the south, tilted ~49° from straight down.
 // The tilt is locked; the player can only pan and zoom.
 // const TILT = 0.85; // radians from straight-down
@@ -237,20 +238,36 @@ export default function WorldCanvas() {
                 </Text>
 
                 {/* Land Mass */}
-                <Mainland roadConnectionZ={godrichZone.c[1]} />
-                <Arbadeen />
-                <Godrich />
-                <Regent
-                    roadConnectionZ={ROUNDABOUT_POSITION[2]}
-                />
-                <Wilksonroad />
-                <Congocross />
-                <Murrytong />
+                <BuildingNameScope area="Lumley">
+                    <Mainland roadConnectionZ={godrichZone.c[1]} />
+                </BuildingNameScope>
+                <BuildingNameScope area="Aberdeen">
+                    <Arbadeen />
+                </BuildingNameScope>
+                <BuildingNameScope area="Godrich">
+                    <Godrich />
+                </BuildingNameScope>
+                <BuildingNameScope area="Regent">
+                    <Regent roadConnectionZ={ROUNDABOUT_POSITION[2]} />
+                </BuildingNameScope>
+                <BuildingNameScope area="Wilkson Road">
+                    <Wilksonroad />
+                </BuildingNameScope>
+                <BuildingNameScope area="Congo Cross">
+                    <Congocross />
+                </BuildingNameScope>
+                <BuildingNameScope area="Murrytong">
+                    <Murrytong />
+                </BuildingNameScope>
                 <RoadConnections />
                 <Roundabout />
                 {/* <LumelyConnectorRoad /> */}
-                <Hillstation />
-                <Leicesterpeak />
+                <BuildingNameScope area="Hillstation">
+                    <Hillstation />
+                </BuildingNameScope>
+                <BuildingNameScope area="Leicester Peak">
+                    <Leicesterpeak />
+                </BuildingNameScope>
 
                 <OrbitControls
                     makeDefault

@@ -43,7 +43,10 @@ export const info: BuildingInfo = {
 };
 
 
-type Props = { position: [number, number, number] };
+type Props = {
+  position: [number, number, number];
+  nameOverride?: string;
+};
 
 export const SECONDARY_HEIGHT = 3.7;
 const W = 3.2;
@@ -51,7 +54,7 @@ const H = 2;
 const D = 2.2;
 
 // School 3, Secondary: two-storey brick building with a clock tower over the entrance.
-export default function SecondarySchool({ position }: Props) {
+export default function SecondarySchool({ position, nameOverride }: Props) {
   const front = D / 2;
 
   return (
@@ -99,7 +102,7 @@ export default function SecondarySchool({ position }: Props) {
         <meshStandardMaterial color="#0f172a" />
       </mesh>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={SECONDARY_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={SECONDARY_HEIGHT} nameOverride={nameOverride} />
     </group>
   );
 }

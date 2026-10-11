@@ -20,12 +20,16 @@ import {
     LowClassShopTwo,
     LowIncomeHouseOne,
     LowIncomeHouseTwo,
+    HighClassShop,
     MediumClassShop,
     MiddleIncomeHouseOne,
     MiddleIncomeHouseTwo,
     Pharmacy,
+    FamilyRestaurant
 } from '../../Buildings/CityBuildings';
 import EmptyHousePlot from '../../Buildings/EmptyHousePlot';
+import { SharedBusStation, SharedMilitaryHQ } from '@/app/components/zoned/BuildingImports';
+import { scatterGroundPoints, Trees } from '@/app/components/zoned/West2/Landmarks/Scatter';
 
 interface MainlandProps {
     roadConnectionZ?: number;
@@ -133,6 +137,89 @@ export default function Mainland({ roadConnectionZ }: MainlandProps = {}) {
     const malamaRoadLength = malamaRoadEndZ - malamaRoadStartZ;
     const malamaRoadCenterZ = malamaRoadStartZ + malamaRoadLength / 2;
     const malamaLabelZ = malamaBackEdge + 1.5;
+    const lumelyTrees = useMemo(() => scatterGroundPoints(
+        { minX: cx - width / 2, maxX: cx + width / 2, minZ: backEdge, maxZ: frontEdge },
+        {
+            count: 8,
+            seed: 111,
+            minSpacing: 2.8,
+            obstacles: [
+                { x: 20, z: frontRowZ, radius: 3 },
+                { x: 12, z: frontRowZ, radius: 3 },
+                { x: 4, z: frontRowZ, radius: 3 },
+                { x: -8, z: frontRowZ, radius: 3 },
+                { x: -4, z: frontRowZ, radius: 3 },
+                { x: -12, z: frontRowZ, radius: 3 },
+                { x: 9, z: backRowZ, radius: 4 },
+                { x: 16, z: backRowZ, radius: 4 },
+                { x: 4, z: backRowZ, radius: 3 },
+                { x: 0, z: backRowZ, radius: 3 },
+                { x: -8, z: backRowZ, radius: 3 },
+                { x: -15, z: backRowZ, radius: 5 },
+            ],
+            roads: [{ x: cx, z: cz, width, depth: ROAD_DEPTH }],
+        },
+    ), [cx, cz, width, backEdge, frontEdge, frontRowZ, backRowZ]);
+    const lumely2Trees = useMemo(() => scatterGroundPoints(
+        {
+            minX: lumely2Cx - lumely2Width / 2,
+            maxX: lumely2Cx + lumely2Width / 2,
+            minZ: lumely2Cz - lumely2Depth / 2,
+            maxZ: lumely2Cz + lumely2Depth / 2,
+        },
+        {
+            count: 6,
+            seed: 222,
+            minSpacing: 2.6,
+            obstacles: [
+                { x: lumely2Cx + 3.5, z: lumely2Cz - 5, radius: 2.4 },
+                { x: lumely2Cx - 3, z: lumely2Cz - 5, radius: 2.4 },
+                { x: lumely2Cx - 9, z: lumely2Cz - 5, radius: 2.4 },
+                { x: lumely2Cx - 7, z: lumely2Cz + 5, radius: 3.2 },
+                { x: lumely2Cx, z: lumely2Cz + 5, radius: 2.5 },
+                { x: lumely2Cx + 5, z: lumely2Cz + 5, radius: 3.2 },
+            ],
+            roads: [{ x: lumely2Cx, z: lumely2RoadZ, width: lumely2Width, depth: ROAD_DEPTH }],
+        },
+    ), [lumely2Cx, lumely2Cz, lumely2Width, lumely2Depth, lumely2RoadZ]);
+    const malamaTrees = useMemo(() => {
+        const buildingOffsets: [number, number, number][] = [
+            [-7.2, 20, 2.4], [-2.8, 20, 2.4], [-7.2, 15, 2.4], [-2.8, 15, 2.4],
+            [-7.2, 10, 2.4], [-2.8, 10, 2.4], [-7.2, 5, 2.3], [-2.8, 5, 2.3],
+            [-7.2, 0, 2.3], [-2.8, 0, 2.3], [-7.2, -5, 2.3], [-2.8, -5, 2.3],
+            [-7.2, -10, 2.3], [-2.8, -10, 2.3], [-7.2, -15, 2], [-2.8, -15, 2],
+            [3, 20, 2.4], [7.5, 20, 2.4], [3, 15, 2.4], [7.5, 15, 2.4],
+            [3, 10, 2.4], [7.5, 10, 2.4], [3, 5, 2.4], [7.5, 5, 2.4],
+            [3, 0, 2.3], [7.5, 0, 2.3], [3, -5, 2.3], [7.2, -5, 2.3],
+            [3, -10, 2], [7.5, -10, 2], [3, -15, 2], [7.5, -15, 2],
+        ];
+        return scatterGroundPoints(
+            {
+                minX: malamaCx - malamaWidth / 2,
+                maxX: malamaCx + malamaWidth / 2,
+                minZ: malamaBackEdge,
+                maxZ: malamaFrontEdge,
+            },
+            {
+                count: 7,
+                seed: 333,
+                minSpacing: 2.2,
+                edgePadding: 0.8,
+                roadPadding: 0.5,
+                obstacles: buildingOffsets.map(([x, z, radius]) => ({
+                    x: malamaCx + x,
+                    z: malamaCz + z,
+                    radius,
+                })),
+                roads: [{
+                    x: malamaCx,
+                    z: malamaRoadCenterZ,
+                    width: ROAD_DEPTH,
+                    depth: malamaRoadLength,
+                }],
+            },
+        );
+    }, [malamaCx, malamaCz, malamaWidth, malamaBackEdge, malamaFrontEdge, malamaRoadCenterZ, malamaRoadLength]);
     // const treePositions = useMemo(
     //     () => makeTreePositions(cx, cz, width, backEdge, frontEdge, roadZ),
     //     [cx, cz, width, backEdge, frontEdge, roadZ],
@@ -211,23 +298,30 @@ export default function Mainland({ roadConnectionZ }: MainlandProps = {}) {
             </mesh>
 
             {/* Buildings in two rows, ordered from right to left */}
-            <NightClub position={[cx + 16, 0, frontRowZ]} />
+            <NightClub position={[cx + 16, 0, frontRowZ]} nameOverride="Chapter 1" />
             <Gym position={[cx + 8, 0, frontRowZ]} />
             <Hotel position={[cx, 0, frontRowZ]} />
             <LifeguardTower position={[cx - 12, 0, frontRowZ]} />
             <Lighthouse position={[cx - 8, 0, frontRowZ]} />
             <TikiBar position={[cx - 16, 0, frontRowZ]} />
-            <GulfSquare position={[cx + 12, 0, backRowZ]} />
-            <FishGrill position={[cx + 0, 0, backRowZ]} />
-            <SurfShop position={[cx - 4, 0, backRowZ]} />
+            <GulfSquare position={[cx + 5, 0, backRowZ]} nameOverride="Gulf Club" />
+            <FishGrill position={[-0.5, 0, frontRowZ]} />
+            <SurfShop position={[24.5, 0, frontRowZ]} />
             <IceCreamCafe position={[cx - 12, 0, backRowZ]} />
+            <FamilyRestaurant position={[cx - 19, 0, backRowZ]} />
+            <Trees points={lumelyTrees} seed={111} size={0.75} />
+
+            <HighClassShop position={[2, 0, backRowZ]} nameOverride="Freetown Mall" />
 
             <LowClassShop position={[lumely2Cx + 3.5, 0, lumely2Cz - 5]} />
             <LowClassShop position={[lumely2Cx - 3, 0, lumely2Cz - 5]} />
             <LowClassShop position={[lumely2Cx - 9, 0, lumely2Cz - 5]} />
-            <MediumClassShop position={[lumely2Cx - 7, 0, lumely2Cz + 5]} />
-            <Pharmacy position={[lumely2Cx, 0, lumely2Cz + 5]} />
-            <Bank position={[lumely2Cx + 5, 0, lumely2Cz + 5]} />
+            <MediumClassShop position={[lumely2Cx - 7, 0, lumely2Cz + 5]} nameOverride="Lumely Markit" />
+            <Pharmacy position={[lumely2Cx, 0, lumely2Cz + 5]} nameOverride="Mack Pharmacy" />
+            <Bank position={[lumely2Cx + 5, 0, lumely2Cz + 5]} nameOverride="UBA" />
+            <Trees points={lumely2Trees} seed={222} size={0.75} />
+
+            <SharedBusStation position={[cx + 12, 0, backRowZ]} nameOverride="Lumely Bus station" />
 
             {/* Malama buildings */}
             <LowClassShop position={[malamaCx - 7.2, 0, malamaCz + 20]} />
@@ -237,13 +331,13 @@ export default function Mainland({ roadConnectionZ }: MainlandProps = {}) {
             <LowClassShop position={[malamaCx - 7.2, 0, malamaCz + 10]} />
             <LowClassShop position={[malamaCx - 2.8, 0, malamaCz + 10]} />
 
-            <LowIncomeHouseOne position={[malamaCx - 7.2, 0, malamaCz + 5]} />
-            <LowIncomeHouseTwo position={[malamaCx - 2.8, 0, malamaCz + 5]} />
-            <LowIncomeHouseTwo position={[malamaCx - 7.2, 0, malamaCz]} />
-            <LowIncomeHouseOne position={[malamaCx - 2.8, 0, malamaCz]} />
-            <LowIncomeHouseOne position={[malamaCx - 7.2, 0, malamaCz - 5]} />
-            <LowIncomeHouseTwo position={[malamaCx - 2.8, 0, malamaCz - 5]} />
-            <LowIncomeHouseTwo position={[malamaCx - 7.2, 0, malamaCz - 10]} />
+            <LowIncomeHouseOne position={[malamaCx - 7.2, 0, malamaCz + 5]} showPin={false} />
+            <LowIncomeHouseTwo position={[malamaCx - 2.8, 0, malamaCz + 5]} showPin={false} />
+            <LowIncomeHouseTwo position={[malamaCx - 7.2, 0, malamaCz]} showPin={false} />
+            <LowIncomeHouseOne position={[malamaCx - 2.8, 0, malamaCz]} showPin={false} />
+            <LowIncomeHouseOne position={[malamaCx - 7.2, 0, malamaCz - 5]} showPin={false} />
+            <LowIncomeHouseTwo position={[malamaCx - 2.8, 0, malamaCz - 5]} showPin={false} />
+            <LowIncomeHouseTwo position={[malamaCx - 7.2, 0, malamaCz - 10]} showPin={false} />
             <EmptyHousePlot position={[malamaCx - 2.8, 0, malamaCz - 15]} />
             <EmptyHousePlot position={[malamaCx - 7.2, 0, malamaCz - 15]} />
             <EmptyHousePlot position={[malamaCx - 2.8, 0, malamaCz - 10]} />
@@ -264,6 +358,7 @@ export default function Mainland({ roadConnectionZ }: MainlandProps = {}) {
             <EmptyHousePlot position={[malamaCx + 7.5, 0, malamaCz - 10]} />
             <EmptyHousePlot position={[malamaCx + 3, 0, malamaCz - 15]} />
             <EmptyHousePlot position={[malamaCx + 7.5, 0, malamaCz - 15]} />
+            <Trees points={malamaTrees} seed={333} size={0.65} />
             {/* Baskball court representing sport sport zone */}
 
             {/* Trees fill the open strip between the building rows */}

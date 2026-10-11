@@ -3,6 +3,7 @@
 //Lumely Zone, Arbadeen Zone, Wilkson Road Zone one building folder
 import { Text } from '@react-three/drei';
 import { useMemo } from 'react';
+import { scatterGroundPoints, Trees } from '@/app/components/zoned/West2/Landmarks/Scatter';
 import type { ZoneConfig } from '@/app/components/zoned/BuildingImports';
 import {
     ArbadeenChurch as Church,
@@ -82,6 +83,25 @@ export default function Mainland() {
     const labelZ = (backEdge + (cz - ROAD_DEPTH / 2)) / 2;
     const backRowZ = cz - 3.8;
     const frontRowZ = cz + 4.5;
+    const vegetation = useMemo(() => scatterGroundPoints(
+        { minX: cx - width / 2, maxX: cx + width / 2, minZ: backEdge, maxZ: frontEdge },
+        {
+            count: 10,
+            seed: 444,
+            minSpacing: 2.7,
+            obstacles: [
+                { x: 8, z: 5.5, radius: 3 },
+                { x: 14, z: 5.5, radius: 3 },
+                { x: -10, z: 2.5, radius: 3.2 },
+                { x: 0, z: 0, radius: 4 },
+                { x: 18, z: 0, radius: 5 },
+                { x: 8, z: -10, radius: 4 },
+                { x: 14, z: -10, radius: 4 },
+                { x: -10, z: -10, radius: 3 },
+            ],
+            roads: [{ x: cx, z: roadZ, width, depth: ROAD_DEPTH }],
+        },
+    ), [cx, cz, width, backEdge, frontEdge, roadZ]);
     // const treePositions = useMemo(
     //     () => makeTreePositions(cx, cz, width, backEdge, frontEdge, roadZ),
     //     [cx, cz, width, backEdge, frontEdge, roadZ],
@@ -101,12 +121,15 @@ export default function Mainland() {
                 <meshStandardMaterial color="#6b7280" />
             </mesh>
             x, y, z
-            <Hospital position={[8, 0, 5.5]} />
-            <PoliceStation position={[14, 0, 5.5]} />
-            <YouthSportCenter position={[-10, 0, 2.5]} />
+            <Hospital position={[8, 0, 5.5]} nameOverride="Lumely Hospital" />
+            <SecondarySchool position={[8, 0, 1]} nameOverride="Eureka Prep" />
+            <PoliceStation position={[14, 0, 5.5]} nameOverride="Lumely Police" />
+            <YouthSportCenter position={[-10, 0, 2.5]} nameOverride="YSC" />
 
-            <FineDiningRestaurant position={[0, 0, 0]} />
-            <FamilyRestaurant position={[18, 0, 0]} />
+            <FineDiningRestaurant position={[0, 0, 0]} nameOverride="Basha Bakery" />
+            <FamilyRestaurant position={[18, 0, 0]} nameOverride="Roofgarden" />
+            <LowIncomeHouseOne position={[-4.5, 0, -6.5]} />
+            <LowIncomeHouseTwo position={[4.5, 0, -6.5]} />
             {/* <LowClassShop position={[-10, 0, 14]} /> */}
             {/* <MediumClassShop position={[-3, 0, 14]} />
             <HighClassShop position={[4, 0, 14]} /> */}
@@ -121,23 +144,25 @@ export default function Mainland() {
             <AfricanMarket position={[-8, 0, -10]} />
             <BeachBuilding position={[0, 0, -10]} /> */}
 
-            <OfficeTowerOne position={[8, 0, -10]} />
-            <OfficeTowerTwo position={[14, 0, -10]} />
+            <OfficeTowerOne position={[-19, 0, -10]} nameOverride="Africell Office" />
 {/* 
             <BusStation position={[-8, 0, -16]} />
             <MilitaryHQ position={[8, 0, -16]} /> */}
 
 
-            <Bank position={[-10, 0, -10]} />
-            <FamilyRestaurant position={[-2, 0, -10]} />
-            <HighClassShop position={[7, 0, -10]} />
+            <Bank position={[-19, 0, -0]} nameOverride="Rokel Bank" />
+            {/* <FamilyRestaurant position={[-2, 0, -10]} />
+            <HighClassShop position={[7, 0, -10]} /> */}
             {/* <LowClassShop position={[-10, 0, -19]} />
             <LowClassShopTwo position={[-5, 0, -19]} />
              */}
 
-            <LowIncomeHouseOne position={[-10, 0, -29]} />
-            <LowIncomeHouseTwo position={[-5, 0, -29]} />
-            <MiddleIncomeHouseTwo position={[-15, 0, - 29]} />
+            
+            <LowIncomeHouseOne position={[-4, 0, - 15]} showPin={false} />
+            <LowIncomeHouseTwo position={[7, 0, - 15]} showPin={false} />
+            <MiddleIncomeHouseTwo position={[-15, 0, - 15]} />
+
+            <Trees points={vegetation} seed={444} size={0.8} />
 
 
             {/* Name, painted on the ground behind the road */}

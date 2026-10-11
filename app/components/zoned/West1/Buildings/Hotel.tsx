@@ -38,6 +38,7 @@ export const info: BuildingInfo = {
 type Props = {
   position: [number, number, number];
   color?: string; // accent colour (band, canopy), so one model gives several hotels
+  nameOverride?: string;
 };
 
 export const HOTEL_HEIGHT = 4.35;
@@ -45,7 +46,7 @@ const TOWER_W = 2.2;
 const FLOORS = [0, 1, 2, 3, 4];
 
 // Hotel: low podium with an entrance canopy, a tower with window strips, an accent band and a name.
-export default function Hotel({ position, color = '#10b981' }: Props) {
+export default function Hotel({ position, color = '#10b981', nameOverride }: Props) {
   const half = TOWER_W / 2;
   const windowY = (i: number) => 1.1 + i * 0.6;
   const glass = { color: '#38bdf8', emissive: '#0ea5e9', emissiveIntensity: 0.25 };
@@ -87,8 +88,8 @@ export default function Hotel({ position, color = '#10b981' }: Props) {
         <boxGeometry args={[TOWER_W + 0.04, 0.3, TOWER_W + 0.04]} />
         <meshStandardMaterial color={color} />
       </mesh>
-      <Text position={[0, 4, half + 0.04]} fontSize={0.2} letterSpacing={0.15} color="#ffffff" anchorX="center" anchorY="middle">
-        HOTEL
+      <Text position={[0, 4, half + 0.04]} fontSize={nameOverride ? 0.12 : 0.2} letterSpacing={0.15} color="#ffffff" anchorX="center" anchorY="middle">
+        {nameOverride?.toUpperCase() ?? 'HOTEL'}
       </Text>
 
       {/* Roof cap */}
@@ -108,7 +109,7 @@ export default function Hotel({ position, color = '#10b981' }: Props) {
       </mesh>
 
       {/* Icon on the building */}
-      <BuildingPin emoji={info.emoji} label={info.name} height={HOTEL_HEIGHT} />
+      <BuildingPin emoji={info.emoji} label={info.name} height={HOTEL_HEIGHT} nameOverride={nameOverride} />
     </group>
   );
 }

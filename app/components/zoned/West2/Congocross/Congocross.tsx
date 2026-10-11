@@ -3,6 +3,7 @@
 import { Text } from '@react-three/drei';
 import { useMemo } from 'react';
 import type { ZoneConfig } from '@/app/components/zoned/BuildingImports';
+import { scatterGroundPoints, Trees } from '@/app/components/zoned/West2/Landmarks/Scatter';
 import {
     ArbadeenChurch as Church,
     ArbadeenGrammarSchool as GrammarSchool,
@@ -42,6 +43,21 @@ export default function Mainland() {
     const labelZ = (backEdge + (roadZ - ROAD_DEPTH / 2)) / 2; // midway between the back edge and the road
     const backRowZ = cz - 3.8;
     const frontRowZ = cz + 4.5;
+    const vegetation = useMemo(() => scatterGroundPoints(
+        { minX: cx - width / 2, maxX: cx + width / 2, minZ: backEdge, maxZ: frontEdge },
+        {
+            count: 12,
+            seed: 555,
+            minSpacing: 2.8,
+            obstacles: [
+                { x: -8, z: -24, radius: 3.5 },
+                { x: -1, z: -24, radius: 3 },
+                { x: -16, z: -22, radius: 2.5 },
+                { x: 10, z: -24, radius: 3 },
+            ],
+            roads: [{ x: cx, z: roadZ, width, depth: ROAD_DEPTH }],
+        },
+    ), [cx, cz, width, backEdge, frontEdge, roadZ]);
 
     return (
         <group>
@@ -57,17 +73,19 @@ export default function Mainland() {
                 <meshStandardMaterial color="#6b7280" />
             </mesh>
 
-            <Stadium position={[-8, 0, -24]} />
-            <Hospital position={[-1, 0, -24]} />
+            <Stadium position={[-8, 0, -24]} nameOverride="Stadium" />
+            <Hospital position={[-1, 0, -24]} nameOverride="Kingherman road hospital" />
             {/* <PoliceStation position={[0, 0, -3.5]} />
             <Church position={[4, 0, -3.5]} />
             <Mosque position={[8, 0, -3.5]} /> */}
 
             {/* <YouthSportCenter position={[-8, 0, 0]} /> */}
-            <WhiteTower position={[-16, 0, -22]} />
+            <WhiteTower position={[-16, 0, -22]} nameOverride="Youyi Building" />
             {/* <NurserySchool position={[0, 0, 0]} />
             <PrimarySchool position={[4, 0, 0]} />*/}
-            <SecondarySchool position={[10, 0, -24]} /> 
+            <SecondarySchool position={[10, 0, -24]} nameOverride="Lebanese International School" />
+
+            <Trees points={vegetation} seed={555} size={0.8} />
 
             {/* <GrammarSchool position={[-6, 0, 3.5]} />
             <TechnicalCollege position={[-2, 0, 3.5]} />

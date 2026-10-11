@@ -6,6 +6,9 @@ import { useMemo } from 'react';
 import type { ZoneConfig } from '@/app/components/zoned/BuildingImports';
 import { ArbadeenGrammarSchool as GrammarSchool } from '@/app/components/zoned/BuildingImports';
 
+import { SharedBusStation, SharedMilitaryHQ } from '@/app/components/zoned/BuildingImports';
+import { scatterGroundPoints, Trees } from '@/app/components/zoned/West2/Landmarks/Scatter';
+
 export const zone: ZoneConfig = {
     id: 'lumely-2',
     c: [-36, -0.5],
@@ -46,15 +49,38 @@ export default function Murrytong() {
         []
     );
 
-        const [cx, cz] = zone.c;
-    
-        const backEdge = cz - depth / 2;
-        const frontEdge = cz + depth / 2;
-        //road in the middle
-        const roadZ = cz;
-        const labelZ = (backEdge + (roadZ - ROAD_DEPTH / 2)) / 2; // midway between the back edge and the road
-        const backRowZ = cz - 3.8;
-        const frontRowZ = cz + 4.5;
+    const [cx, cz] = zone.c;
+
+    const backEdge = cz - depth / 2;
+    const frontEdge = cz + depth / 2;
+    //road in the middle
+    const roadZ = cz;
+    const labelZ = (backEdge + (roadZ - ROAD_DEPTH / 2)) / 2; // midway between the back edge and the road
+    const backRowZ = cz - 3.8;
+    const frontRowZ = cz + 4.5;
+    const vegetation = useMemo(() => scatterGroundPoints(
+        {
+            minX: centerX - width / 2,
+            maxX: centerX + width / 2,
+            minZ: centerZ - depth / 2,
+            maxZ: centerZ + depth / 2,
+        },
+        {
+            count: 5,
+            seed: 666,
+            minSpacing: 2.2,
+            edgePadding: 0.75,
+            obstacles: [
+                { x: -43, z: 2, radius: 2.5 },
+                { x: -40, z: 2, radius: 3 },
+                { x: -30, z: 2, radius: 3 },
+            ],
+            roads: [
+                { x: cx, z: roadZ, width, depth: ROAD_DEPTH },
+                { x: centerX, z: bridgeCenterZ, width: ROAD_DEPTH, depth: bridgeLength },
+            ],
+        },
+    ), [centerX, centerZ, width, depth, cx, roadZ, bridgeCenterZ, bridgeLength]);
 
     return (
         <group>
@@ -66,13 +92,15 @@ export default function Murrytong() {
                 <boxGeometry args={[width, 0.5, depth]} />
                 <meshStandardMaterial color={zone.color} />
             </mesh>
-            
+
             <GrammarSchool position={[-43, 0, 2]} />
             {/* Road through the middle of the land mass */}
             <mesh position={[cx, 0.03, roadZ]} receiveShadow>
                 <boxGeometry args={[width, 0.06, ROAD_DEPTH]} />
                 <meshStandardMaterial color="#6b7280" />
             </mesh>
+
+            <Trees points={vegetation} seed={666} size={0.7} />
 
             {/* Jetty on the left (west) side of Murrytong */}
             <group position={[centerX - width / 2 - 3, 0, centerZ]}>
@@ -164,15 +192,15 @@ export default function Murrytong() {
             ))}
 
             {/* Road connecting Murrytong's main road to the metal bridge */}
-<mesh
-    position={[centerX, 0.065, (centerZ + bridgeStartZ) / 2]}
-    receiveShadow
->
-    <boxGeometry
-        args={[ROAD_DEPTH, 0.08, bridgeStartZ - centerZ]}
-    />
-    <meshStandardMaterial color="#6b7280" roughness={0.95} />
-</mesh>
+            <mesh
+                position={[centerX, 0.065, (centerZ + bridgeStartZ) / 2]}
+                receiveShadow
+            >
+                <boxGeometry
+                    args={[ROAD_DEPTH, 0.08, bridgeStartZ - centerZ]}
+                />
+                <meshStandardMaterial color="#6b7280" roughness={0.95} />
+            </mesh>
 
             {/* Metal bridge connecting Murrytong and Arbadeen */}
             <group position={[centerX, 0, bridgeCenterZ]}>
@@ -283,6 +311,11 @@ export default function Murrytong() {
                     </mesh>
                 ))}
             </group>
+
+
+            <SharedBusStation position={[-40, 0, 2]} />
+            <SharedMilitaryHQ position={[-30, 0, 2]} />
+
 
             {/* Murrytong label */}
             {zone.label && (

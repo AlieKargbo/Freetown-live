@@ -72,9 +72,9 @@ export default function Mainland() {
             </mesh>
 
             <Church position={[50, 0, 15]} />
-            {/* <SecondarySchool position={[75, 0, 15]} /> */}
+            <SecondarySchool position={[75, 0, 26]} nameOverride="Hill Valley Academy" />
             <Church position={[60, 0, 25]} />
-            <FineDiningRestaurant position={[60, 0, 25]} />
+            <FineDiningRestaurant position={[60, 0, 25]} nameOverride="LOR" />
 
             {/* Beach along the front */}
             <mesh position={[cx, 0.03, frontEdge - BEACH_DEPTH / 2]} receiveShadow>

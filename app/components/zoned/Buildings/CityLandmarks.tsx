@@ -5,6 +5,7 @@ import { BuildingPins } from '@/app/components/zoned/BuildingImports';
 
 type Props = {
   position: [number, number, number];
+  nameOverride?: string;
 };
 
 type LandmarkKind =
@@ -90,7 +91,7 @@ const STYLES: Record<
   },
 };
 
-function Landmark({ position, kind }: Props & { kind: LandmarkKind }) {
+function Landmark({ position, kind, nameOverride }: Props & { kind: LandmarkKind }) {
   const style = STYLES[kind];
 
   const isTower = kind === 'officeOne' || kind === 'officeTwo';
@@ -359,6 +360,7 @@ function Landmark({ position, kind }: Props & { kind: LandmarkKind }) {
         emoji={style.emoji}
         label={style.label}
         height={Math.max(buildingHeight + 0.4, 2.8)}
+        nameOverride={nameOverride}
       />
     </group>
   );

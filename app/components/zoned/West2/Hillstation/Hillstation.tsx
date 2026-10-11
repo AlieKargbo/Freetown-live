@@ -3,6 +3,7 @@
 import { Text } from '@react-three/drei';
 import { useMemo } from 'react';
 import type { ZoneConfig } from '@/app/components/zoned/BuildingImports';
+import { scatterGroundPoints, Trees } from '@/app/components/zoned/West2/Landmarks/Scatter';
 
 export const zone: ZoneConfig = {
     id: 'mainland',
@@ -30,6 +31,16 @@ export default function Mainland() {
     const frontEdge = cz + depth / 2;
     const roadZ = backEdge + ROAD_INSET;
     const labelZ = (backEdge + (roadZ - ROAD_DEPTH / 2)) / 2; // midway between the back edge and the road
+    const vegetation = useMemo(() => scatterGroundPoints(
+        { minX: cx - width / 2, maxX: cx + width / 2, minZ: backEdge, maxZ: frontEdge },
+        {
+            count: 24,
+            seed: 777,
+            minSpacing: 4,
+            edgePadding: 2,
+            obstacles: [{ x: cx, z: labelZ, radius: 5 }],
+        },
+    ), [cx, cz, width, backEdge, frontEdge, labelZ]);
 
     return (
         <group>
@@ -38,6 +49,8 @@ export default function Mainland() {
                 <boxGeometry args={[width, 0.5, depth]} />
                 <meshStandardMaterial color={zone.color} />
             </mesh>
+
+            <Trees points={vegetation} seed={777} size={1.05} />
 
             {/* Name, painted on the ground behind the road */}
             {zone.label && (

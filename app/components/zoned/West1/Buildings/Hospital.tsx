@@ -33,7 +33,10 @@ export const info: BuildingInfo = {
 };
 
 
-type Props = { position: [number, number, number] };
+type Props = {
+  position: [number, number, number];
+  nameOverride?: string;
+};
 
 export const HOSPITAL_HEIGHT = 3.7;
 const W = 4.4;
@@ -49,7 +52,7 @@ const WHEELS: [number, number][] = [
 
 // Hospital: three-storey white block with blue bands, red-cross sign on the roof,
 // entrance canopy and a parked ambulance.
-export default function Hospital({ position }: Props) {
+export default function Hospital({ position, nameOverride }: Props) {
   const front = D / 2;
 
   return (
@@ -132,7 +135,7 @@ export default function Hospital({ position }: Props) {
         ))}
       </group>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={HOSPITAL_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={HOSPITAL_HEIGHT} nameOverride={nameOverride} />
     </group>
   );
 }

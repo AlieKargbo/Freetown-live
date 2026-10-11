@@ -4,11 +4,13 @@ import { Text } from '@react-three/drei';
 import { useMemo } from 'react';
 import type { ZoneConfig } from '@/app/components/WorldCanvas';
 import {
+    ArbadeenSecondarySchool as SecondarySchool,
     RegentEmbassyOne as EmbassyOne,
     RegentPresidentialCompound as PresidentialCompound,
 } from '@/app/components/zoned/BuildingImports';
 import {
     BeautySalon,
+    OfficeTowerTwo,
     RadioStation,
 } from '../../Buildings/CityLandmarks';
 import {
@@ -147,18 +149,20 @@ export default function Mainland({ roadConnectionZ }: MainlandProps) {
                 <meshStandardMaterial color="#6b7280" />
             </mesh>
 
-            <EmbassyOne position={[20, 0, -15]} />
+            <EmbassyOne position={[20, 0, -15]} nameOverride="British High Commission" />
 
 
             <BeautySalon position={[29, 0, - 15]} />
-            <RadioStation position={[15, 0, -23]} />
-            <Pharmacy position={[28.5, 0, - 1]} />
+            <RadioStation position={[15, 0, -23]} nameOverride="SLBC" />
+            <Pharmacy position={[28.5, 0, - 1]} nameOverride="City Pharmacy" />
             <MediumClassShop position={[22, 0, - 26]} />
             <MiddleIncomeHouseOne position={[28.5, 0, 4]} />
             <MiddleIncomeHouseOne position={[33, 0, 4]} />
-             <Hotel position={[29, 0, - 10]} />
+             <Hotel position={[29, 0, - 10]} nameOverride="Swiss Hotel" />
+            <SecondarySchool position={[20, 0, - 33]} nameOverride="American International School of Freetown" />
 
-            <PresidentialCompound position={[southernCx + 11, 0, southernCz + 5]} />
+            <PresidentialCompound position={[southernCx + 8, 0, southernCz + 10]} />
+            <OfficeTowerTwo position={[29.5, 0, - 55]} nameOverride="Orange Office" />
             {treePositions.map(([x, z], index) => (
                 <Tree key={index} position={[x, 0, z]} />
             ))}

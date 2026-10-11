@@ -34,7 +34,10 @@ export const info: BuildingInfo = {
 };
 
 
-type Props = { position: [number, number, number] };
+type Props = {
+  position: [number, number, number];
+  nameOverride?: string;
+};
 
 export const POLICE_HEIGHT = 1.9;
 const W = 3.2;
@@ -49,7 +52,7 @@ const WHEELS: [number, number][] = [
 
 // Police station: navy base, white upper floor, glowing "POLICE" sign, rooftop sirens
 // and a parked patrol car.
-export default function PoliceStation({ position }: Props) {
+export default function PoliceStation({ position, nameOverride }: Props) {
   const front = D / 2;
 
   return (
@@ -72,8 +75,8 @@ export default function PoliceStation({ position }: Props) {
         <boxGeometry args={[1.4, 0.3, 0.05]} />
         <meshStandardMaterial color="#0f172a" />
       </mesh>
-      <Text position={[0, 1.1, front + 0.065]} fontSize={0.2} letterSpacing={0.15} color="#ffffff" anchorX="center" anchorY="middle">
-        POLICE
+      <Text position={[0, 1.1, front + 0.065]} fontSize={nameOverride ? 0.14 : 0.2} letterSpacing={0.15} color="#ffffff" anchorX="center" anchorY="middle">
+        {nameOverride?.toUpperCase() ?? 'POLICE'}
       </Text>
       <WindowGrid position={[-1.15, 1.1, front + 0.015]} width={0.6} height={0.4} cols={1} rows={1} fill={0.8} />
       <WindowGrid position={[1.15, 1.1, front + 0.015]} width={0.6} height={0.4} cols={1} rows={1} fill={0.8} />
@@ -128,7 +131,7 @@ export default function PoliceStation({ position }: Props) {
         ))}
       </group>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={POLICE_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={POLICE_HEIGHT} nameOverride={nameOverride} />
     </group>
   );
 }

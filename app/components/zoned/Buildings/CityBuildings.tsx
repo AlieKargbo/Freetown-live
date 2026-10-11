@@ -12,6 +12,7 @@ export type BuildingProps = {
 };
 
 type ShopProps = BuildingProps;
+type NamedBuildingProps = BuildingProps & { nameOverride?: string };
 
 type HousingLevel = 'low' | 'middle' | 'high';
 
@@ -99,7 +100,7 @@ export function WindowGrid({
 
 export const BANK_HEIGHT = 4.1;
 
-export function Bank({ position }: BuildingProps) {
+export function Bank({ position, nameOverride }: NamedBuildingProps) {
   const W = 5.5;
   const D = 4.8;
   const H = 3.5;
@@ -158,7 +159,7 @@ export function Bank({ position }: BuildingProps) {
           anchorX="center"
           anchorY="middle"
         >
-          BANK
+          {nameOverride ?? 'BANK'}
         </Text>
 
         {[-1.7, 1.7].map((x) => (
@@ -172,7 +173,7 @@ export function Bank({ position }: BuildingProps) {
           </mesh>
         ))}
 
-        <BuildingPins emoji="🏦" label="Bank" height={BANK_HEIGHT} />
+        <BuildingPins emoji="🏦" label="Bank" height={BANK_HEIGHT} nameOverride={nameOverride} />
       </UrbanLot>
     </group>
   );
@@ -184,7 +185,7 @@ export function Bank({ position }: BuildingProps) {
 
 export const FAMILY_RESTAURANT_HEIGHT = 3.3;
 
-export function FamilyRestaurant({ position }: BuildingProps) {
+export function FamilyRestaurant({ position, nameOverride }: NamedBuildingProps) {
   return (
     <group position={position}>
       <UrbanLot
@@ -257,13 +258,14 @@ export function FamilyRestaurant({ position }: BuildingProps) {
           anchorX="center"
           anchorY="middle"
         >
-          LOCAL RESTAURANT
+          {nameOverride ?? 'LOCAL RESTAURANT'}
         </Text>
 
         <BuildingPins
           emoji="🍽️"
           label="Family Restaurant"
           height={FAMILY_RESTAURANT_HEIGHT}
+          nameOverride={nameOverride}
         />
       </UrbanLot>
     </group>
@@ -276,7 +278,7 @@ export function FamilyRestaurant({ position }: BuildingProps) {
 
 export const HIGHCLASSSHOP_HEIGHT = 4.05;
 
-export function HighClassShop({ position }: ShopProps) {
+export function HighClassShop({ position, nameOverride }: NamedBuildingProps) {
   const W = 5;
   const D = 4;
   const H = 3.5;
@@ -325,13 +327,14 @@ export function HighClassShop({ position }: ShopProps) {
           anchorX="center"
           anchorY="middle"
         >
-          LUXURY BOUTIQUE
+          {nameOverride ?? 'LUXURY BOUTIQUE'}
         </Text>
 
         <BuildingPins
           emoji="💎"
           label="Luxury Boutique"
           height={HIGHCLASSSHOP_HEIGHT}
+          nameOverride={nameOverride}
         />
       </UrbanLot>
     </group>
@@ -394,11 +397,11 @@ export function LowClassShop({ position }: ShopProps) {
           NEIGHBOURHOOD SHOP
         </Text>
 
-        <BuildingPins
+        {/* <BuildingPins
           emoji="🏪"
           label="Neighbourhood Shop"
           height={LOWCLASSSHOP_HEIGHT}
-        />
+        /> */}
       </UrbanLot>
     </group>
   );
@@ -453,11 +456,11 @@ export function LowClassShopTwo({ position }: ShopProps) {
           MARKET STALL SHOP
         </Text>
 
-        <BuildingPins
+        {/* <BuildingPins
           emoji="🧺"
           label="Market Stall Shop"
           height={LOWCLASSSHOPTWO_HEIGHT}
-        />
+        /> */}
       </UrbanLot>
     </group>
   );
@@ -469,7 +472,7 @@ export function LowClassShopTwo({ position }: ShopProps) {
 
 export const MEDIUMCLASSSHOP_HEIGHT = 3.35;
 
-export function MediumClassShop({ position }: ShopProps) {
+export function MediumClassShop({ position, nameOverride }: NamedBuildingProps) {
   const W = 4.5;
   const D = 3.6;
   const H = 2.8;
@@ -514,13 +517,14 @@ export function MediumClassShop({ position }: ShopProps) {
           anchorX="center"
           anchorY="middle"
         >
-          RETAIL SHOP
+          {nameOverride ?? 'RETAIL SHOP'}
         </Text>
 
         <BuildingPins
           emoji="🛒"
           label="Retail Shop"
           height={MEDIUMCLASSSHOP_HEIGHT}
+          nameOverride={nameOverride}
         />
       </UrbanLot>
     </group>
@@ -533,7 +537,7 @@ export function MediumClassShop({ position }: ShopProps) {
 
 export const PHARMACY_HEIGHT = 2.6;
 
-export function Pharmacy({ position }: BuildingProps) {
+export function Pharmacy({ position, nameOverride }: NamedBuildingProps) {
   const W = 2;
   const D = 2.2;
   const H = 2;
@@ -586,7 +590,7 @@ export function Pharmacy({ position }: BuildingProps) {
           anchorX="center"
           anchorY="middle"
         >
-          PHARMACY
+          {nameOverride ?? 'PHARMACY'}
         </Text>
 
         <mesh position={[0, H + 0.45, D / 2 + 0.1]}>
@@ -603,6 +607,7 @@ export function Pharmacy({ position }: BuildingProps) {
           emoji="💊"
           label="Pharmacy"
           height={PHARMACY_HEIGHT}
+          nameOverride={nameOverride}
         />
       </UrbanLot>
     </group>
@@ -640,12 +645,14 @@ const HOUSING_STYLES = {
 type HousingProps = BuildingProps & {
   level: HousingLevel;
   label?: string;
+  showPin?: boolean;
 };
 
 export function HousingBuilding({
   position,
   level,
   label,
+  showPin = true,
 }: HousingProps) {
   const W = 3.2;
   const H = 2;
@@ -756,31 +763,37 @@ export function HousingBuilding({
         <meshStandardMaterial color={style.door} />
       </mesh>
 
-      <BuildingPins
-        emoji={style.emoji}
-        label={label ?? `${level} Income House`}
-        height={H + 0.3}
-      />
+      {showPin && (
+        <BuildingPins
+          emoji={style.emoji}
+          label={label ?? `${level} Income House`}
+          height={H + 0.3}
+        />
+      )}
     </group>
   );
 }
 
-export function LowIncomeHouseOne({ position }: BuildingProps) {
+type HousingInstanceProps = BuildingProps & { showPin?: boolean };
+
+export function LowIncomeHouseOne({ position, showPin }: HousingInstanceProps) {
   return (
     <HousingBuilding
       position={position}
       level="low"
       label="Low Income House"
+      showPin={showPin}
     />
   );
 }
 
-export function LowIncomeHouseTwo({ position }: BuildingProps) {
+export function LowIncomeHouseTwo({ position, showPin }: HousingInstanceProps) {
   return (
     <HousingBuilding
       position={position}
       level="low"
       label="Low Income House"
+      showPin={showPin}
     />
   );
 }
@@ -791,6 +804,7 @@ export function MiddleIncomeHouseOne({ position }: BuildingProps) {
       position={position}
       level="middle"
       label="Middle Income House"
+      showPin={false}
     />
   );
 }
@@ -801,6 +815,7 @@ export function MiddleIncomeHouseTwo({ position }: BuildingProps) {
       position={position}
       level="middle"
       label="Middle Income House"
+      showPin={false}
     />
   );
 }

@@ -37,6 +37,7 @@ export const info: BuildingInfo = {
 
 type Props = {
   position: [number, number, number]; // ground-level centre of the building
+  nameOverride?: string;
 };
 
 const W = 5; // width (x)
@@ -44,7 +45,7 @@ const H = 2.4; // height (y)
 const D = 4; // depth (z); the front faces +z, towards the camera
 
 // Night club: dark body, neon trim, lit door, red carpet with rope posts.
-export default function NightClub({ position }: Props) {
+export default function NightClub({ position, nameOverride }: Props) {
   const front = D / 2;
 
   return (
@@ -78,7 +79,7 @@ export default function NightClub({ position }: Props) {
       </mesh>
       <Text
         position={[0, 1.75, front + 0.1]}
-        fontSize={0.36}
+        fontSize={nameOverride ? 0.3 : 0.36}
         letterSpacing={0.12}
         color="#fdf4ff"
         outlineColor="#a21caf"
@@ -86,7 +87,7 @@ export default function NightClub({ position }: Props) {
         anchorX="center"
         anchorY="middle"
       >
-        NIGHT CLUB
+        {nameOverride?.toUpperCase() ?? 'NIGHT CLUB'}
       </Text>
 
       {/* Door with a glowing frame */}
@@ -130,7 +131,7 @@ export default function NightClub({ position }: Props) {
       ))}
 
       {/* Icon on the building */}
-      <BuildingPin emoji={info.emoji} label={info.name} height={H + 0.55} />
+      <BuildingPin emoji={info.emoji} label={info.name} height={H + 0.55} nameOverride={nameOverride} />
     </group>
   );
 }

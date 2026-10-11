@@ -6,6 +6,8 @@ import type { Mountain } from './mountain';
 
 type V3 = [number, number, number];
 export type Item = { p: V3; s: V3; c: string; r?: number }; // r = rotation around y
+export type GroundObstacle = { x: number; z: number; radius: number };
+export type GroundRoad = { x: number; z: number; width: number; depth: number };
 
 function rng(seed: number) {
   return () => {
@@ -80,6 +82,46 @@ export function Trees({ points, seed = 1, size = 1 }: { points: V3[]; seed?: num
       <Inst items={cones} shape="cone" />
     </>
   );
+}
+
+export function scatterGroundPoints(
+  bounds: { minX: number; maxX: number; minZ: number; maxZ: number },
+  options: {
+    count: number;
+    seed: number;
+    minSpacing: number;
+    edgePadding?: number;
+    obstacles?: GroundObstacle[];
+    roads?: GroundRoad[];
+    roadPadding?: number;
+  },
+): V3[] {
+  const random = rng(options.seed);
+  const edgePadding = options.edgePadding ?? 1.25;
+  const roadPadding = options.roadPadding ?? 1;
+  const minX = bounds.minX + edgePadding;
+  const maxX = bounds.maxX - edgePadding;
+  const minZ = bounds.minZ + edgePadding;
+  const maxZ = bounds.maxZ - edgePadding;
+  const points: V3[] = [];
+
+  for (let attempt = 0; attempt < options.count * 120 && points.length < options.count; attempt++) {
+    const x = minX + random() * (maxX - minX);
+    const z = minZ + random() * (maxZ - minZ);
+    if (options.roads?.some((road) =>
+      Math.abs(x - road.x) < road.width / 2 + roadPadding &&
+      Math.abs(z - road.z) < road.depth / 2 + roadPadding
+    )) continue;
+    if (options.obstacles?.some((obstacle) =>
+      Math.hypot(x - obstacle.x, z - obstacle.z) < obstacle.radius
+    )) continue;
+    if (points.some(([pointX, , pointZ]) =>
+      Math.hypot(x - pointX, z - pointZ) < options.minSpacing
+    )) continue;
+    points.push([x, 0, z]);
+  }
+
+  return points;
 }
 
 // Random points on a mountain's surface. Only points that really land on the mountain below maxY are kept.

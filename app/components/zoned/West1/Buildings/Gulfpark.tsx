@@ -33,7 +33,10 @@ export const info: BuildingInfo = {
   },
 };
 
-type Props = { position: [number, number, number] };
+type Props = {
+  position: [number, number, number];
+  nameOverride?: string;
+};
 
 export const GOLF_PARK_HEIGHT = 1.6;
 const W = 5.2;
@@ -55,7 +58,7 @@ function Tree({ x, z }: { x: number; z: number }) {
 }
 
 // Golf park: fairway, putting green with flag, bunker, pond, tee, clubhouse, fence and trees.
-export default function GolfPark({ position }: Props) {
+export default function GolfPark({ position, nameOverride }: Props) {
   return (
     <group position={position}>
       {/* Fairway */}
@@ -135,7 +138,7 @@ export default function GolfPark({ position }: Props) {
       ))}
 
       {/* Icon on the building */}
-      <BuildingPin emoji={info.emoji} label={info.name} height={GOLF_PARK_HEIGHT} />
+      <BuildingPin emoji={info.emoji} label={info.name} height={GOLF_PARK_HEIGHT} nameOverride={nameOverride} />
     </group>
   );
 }

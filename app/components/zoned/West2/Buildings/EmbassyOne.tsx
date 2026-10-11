@@ -4,11 +4,14 @@ import { Text } from '@react-three/drei';
 import { BuildingPins } from '@/app/components/zoned/BuildingImports';
 import {UrbanLot} from '@/app/components/zoned/BuildingImports';
 
-type Props = { position: [number, number, number] };
+type Props = {
+  position: [number, number, number];
+  nameOverride?: string;
+};
 export const EMBASSYONE_HEIGHT = 4.1;
 
 /** Secure diplomatic building with formal frontage, flags, and landscaped forecourt. */
-export default function EmbassyOne({ position }: Props) {
+export default function EmbassyOne({ position, nameOverride }: Props) {
   return (
     <group position={position}>
       <UrbanLot width={9.5} depth={9} walkwayWidth={2.5} walkwayDepth={2.2}>
@@ -34,8 +37,8 @@ export default function EmbassyOne({ position }: Props) {
           <boxGeometry args={[4.0, 0.55, 0.08]} />
           <meshStandardMaterial color="#15803d" />
         </mesh>
-        <Text position={[0, 2.95, 2.4]} fontSize={0.2} color="#ffffff" anchorX="center" anchorY="middle">
-          EMBASSY
+        <Text position={[0, 2.95, 2.4]} fontSize={nameOverride ? 0.14 : 0.2} color="#ffffff" anchorX="center" anchorY="middle">
+          {nameOverride?.toUpperCase() ?? 'EMBASSY'}
         </Text>
         {[-2.8, 2.8].map((x, i) => (
           <group key={x} position={[x, 0, 3.1]}>
@@ -49,7 +52,7 @@ export default function EmbassyOne({ position }: Props) {
             </mesh>
           </group>
         ))}
-        <BuildingPins emoji="🏛️" label="Embassy" height={4.1} />
+        <BuildingPins emoji="🏛️" label="Embassy" height={4.1} nameOverride={nameOverride} />
       </UrbanLot>
     </group>
   );

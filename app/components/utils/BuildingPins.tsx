@@ -3,11 +3,13 @@
 import { useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
+import { useBuildingDisplayName } from './BuildingNameScope';
 
 type Props = {
   emoji: string;
   label: string;
   height: number; // top of the building (the pin floats a little above this)
+  nameOverride?: string;
   onClick?: () => void;
 };
 
@@ -19,7 +21,9 @@ const CHECK_EVERY = 0.25; // seconds between zoom checks
 
 // Put one inside a building's <group>. Collapsed = round icon. Expanded = pill that grows to the
 // right with the building's name. Expands on hover, on tap/click (toggle), or when zoomed in.
-export default function BuildingPin({ emoji, label, height, onClick }: Props) {
+export default function BuildingPin({ emoji, label, height, nameOverride, onClick }: Props) {
+  const scopedName = useBuildingDisplayName(label);
+  const displayName = nameOverride ?? scopedName;
   const [hovered, setHovered] = useState(false);
   const [pinned, setPinned] = useState(false);
   const [zoomedIn, setZoomedIn] = useState(false);
@@ -61,7 +65,7 @@ export default function BuildingPin({ emoji, label, height, onClick }: Props) {
               expanded ? 'opacity-100 delay-100' : 'opacity-0'
             }`}
           >
-            {label}
+            {displayName}
           </span>
         </div>
       </div>

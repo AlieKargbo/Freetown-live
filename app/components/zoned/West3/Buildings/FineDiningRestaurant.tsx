@@ -4,10 +4,13 @@ import { Text } from '@react-three/drei';
 import { BuildingPins } from '@/app/components/zoned/BuildingImports';
 import {UrbanLot} from '@/app/components/zoned/BuildingImports';
 
-type Props = { position: [number, number, number] };
+type Props = {
+  position: [number, number, number];
+  nameOverride?: string;
+};
 export const FINE_DINING_HEIGHT = 3.3;
 
-export default function FineDiningRestaurant({ position }: Props) {
+export default function FineDiningRestaurant({ position, nameOverride }: Props) {
   return (
     <group position={position}>
       <UrbanLot width={7.8} depth={8.2} walkwayWidth={2.2} walkwayDepth={1.7}>
@@ -56,9 +59,9 @@ export default function FineDiningRestaurant({ position }: Props) {
           <meshStandardMaterial color="#0f172a" />
         </mesh>
         <Text position={[0, 2.95, 2.1]} fontSize={0.18} color="#f8fafc" anchorX="center" anchorY="middle">
-          LOCAL RESTAURANT
+          {nameOverride ?? 'LOCAL RESTAURANT'}
         </Text>
-        <BuildingPins emoji="🥂" label="Fine Dining" height={3.3} />
+        <BuildingPins emoji="🥂" label="Fine Dining" height={3.3} nameOverride={nameOverride} />
       </UrbanLot>
     </group>
   );

@@ -51,6 +51,12 @@ export {
 } from './Buildings/CityBuildings';
 
 
+export {
+  BusStation as SharedBusStation,
+  MilitaryHQ as SharedMilitaryHQ,
+} from './Buildings/CityLandmarks';
+
+
 export { default as LumelyLighthouse } from './West1/Buildings/Lighthouse';
 export { default as LumelyNightclub } from './West1/Buildings/Nightclub';
 export { default as LumelyFishgrill } from './West1/Buildings/Fishgrill';

@@ -32,7 +32,10 @@ export const info: BuildingInfo = {
 };
 
 
-type Props = { position: [number, number, number] };
+type Props = {
+  position: [number, number, number];
+  nameOverride?: string;
+};
 
 export const STADIUM_HEIGHT = 2.5;
 
@@ -56,7 +59,7 @@ const FLOODLIGHTS: [number, number][] = [
 ];
 
 // Stadium: oval bowl with raked seating, green pitch with centre circle, four floodlight masts.
-export default function Stadium({ position }: Props) {
+export default function Stadium({ position, nameOverride }: Props) {
   return (
     <group position={position}>
       {/* Oval bowl + pitch */}
@@ -99,10 +102,10 @@ export default function Stadium({ position }: Props) {
         <meshStandardMaterial color="#0f172a" />
       </mesh>
       <Text position={[0, 0.35, 3.14]} fontSize={0.2} letterSpacing={0.1} color="#fde047" anchorX="center" anchorY="middle">
-        STADIUM
+        {nameOverride?.toUpperCase() ?? 'STADIUM'}
       </Text>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={STADIUM_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={STADIUM_HEIGHT} nameOverride={nameOverride} />
     </group>
   );
 }

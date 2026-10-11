@@ -21,6 +21,10 @@ import {
     ArbadeenUniversityHall as UniversityHall,
     ArbadeenWhiteTower as WhiteTower,
     ArbadeenYouthSportCenter as YouthSportCenter,
+    SharedFamilyRestaurant as FamilyRestaurant,
+    LumelyFishgrill as FishGrill,
+    LumelyHotel as Hotel,
+    LumelyLighthouse as Lighthouse,
 } from '@/app/components/zoned/BuildingImports';
 
 export const zone: ZoneConfig = {
@@ -117,6 +121,13 @@ export default function Aberdeen() {
                 <boxGeometry args={[24, 0.08, ROAD_DEPTH]} />
                 <meshStandardMaterial color="#6b7280" roughness={0.95} />
             </mesh>
+
+            <Hotel position={[-31, 0, 17]} />
+            <Lighthouse position={[-38, 0, 17]} />
+            <FishGrill position={[-33, 0, 24]} />
+            <group position={[-24, 0, 22.9]} scale={0.6}>
+                <FamilyRestaurant position={[0, 0, 0]} />
+            </group>
 
             {/* Zone Label */}
             {zone.label && (

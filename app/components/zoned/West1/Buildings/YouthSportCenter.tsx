@@ -31,7 +31,10 @@ export const info: BuildingInfo = {
 };
 
 
-type Props = { position: [number, number, number] };
+type Props = {
+  position: [number, number, number];
+  nameOverride?: string;
+};
 
 export const YOUTH_SPORT_HEIGHT = 2.1;
 const W = 4.4;
@@ -40,7 +43,7 @@ const D = 3.2;
 
 // Youth Sports Center: orange hall under a blue barrel roof, bright sign band, and an
 // outdoor mini-court with a basketball hoop.
-export default function YouthSportCenter({ position }: Props) {
+export default function YouthSportCenter({ position, nameOverride }: Props) {
   const front = D / 2;
 
   return (
@@ -61,8 +64,8 @@ export default function YouthSportCenter({ position }: Props) {
         <boxGeometry args={[3, 0.4, 0.05]} />
         <meshStandardMaterial color="#1e3a8a" />
       </mesh>
-      <Text position={[0, 0.85, front + 0.065]} fontSize={0.2} letterSpacing={0.08} color="#ffffff" anchorX="center" anchorY="middle">
-        YOUTH SPORTS
+      <Text position={[0, 0.85, front + 0.065]} fontSize={nameOverride ? 0.16 : 0.2} letterSpacing={0.08} color="#ffffff" anchorX="center" anchorY="middle">
+        {nameOverride?.toUpperCase() ?? 'YOUTH SPORTS'}
       </Text>
       <mesh position={[0, 0.3, front + 0.02]}>
         <boxGeometry args={[1, 0.6, 0.04]} />
@@ -101,7 +104,7 @@ export default function YouthSportCenter({ position }: Props) {
         <meshStandardMaterial color="#fb923c" />
       </mesh>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={YOUTH_SPORT_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={YOUTH_SPORT_HEIGHT} nameOverride={nameOverride} />
     </group>
   );
 }

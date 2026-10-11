@@ -3,6 +3,7 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import BuildingPin from '../../../utils/BuildingPins';
 //import BuildingPin from '../buildings/BuildingPin';
 //import type { BuildingInfo } from '../buildings/info';
 import { buildMountain } from './mountain';
@@ -206,8 +207,12 @@ export default function LeicesterPeak({ position }: Props) {
       <Inst items={road} shape="box" />
 
       <Antenna position={[0, H - 0.1, 0]} />
-
-      {/* <BuildingPin info={info} height={LEICESTER_HEIGHT} /> */}
+      <BuildingPin
+        emoji="⛰️"
+        label="Leicester Peak"
+        nameOverride="Leicester Peak"
+        height={LEICESTER_HEIGHT}
+      />
     </group>
   );
 }
