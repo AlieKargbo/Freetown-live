@@ -31,6 +31,7 @@ import Hud from './Hud';
 import InteriorScene from './utils/InteriorScene';
 import BuildingPopup from './utils/BuildingPopup';
 import InteriorHud from './utils/InteriorHud';
+import GameHUD from './zoned/Utils/GameHUD';
 import { game, useGame } from './utils/Store';
 import { PLAYER_HOME_INFO } from './zoned/Interior/playerHomeInfo';
 
@@ -247,6 +248,7 @@ function LumelyConnectorRoad() {
 export default function WorldCanvas() {
     const interior = useGame((s) => s.interior);
     const popup = useGame((s) => s.popup);
+    const money = useGame((s) => s.money);
     const [showWelcomeTour, setShowWelcomeTour] = useState(false);
 
     useEffect(() => {
@@ -445,7 +447,18 @@ export default function WorldCanvas() {
             )}
 
             {/* Interior HUD */}
-            {interior && <InteriorHud info={interior} />}
+            {interior && (
+                <>
+                    <GameHUD
+                        money={money}
+                        mood="Happy"
+                        gemCount={9166}
+                        nextGemPrize={3000}
+                    />
+                    <InteriorHud info={interior} />
+                </>
+            )}
+
 
             {/* Show the welcome tour only inside the player's home */}
             {interior?.id === 'player-home' && showWelcomeTour && (
