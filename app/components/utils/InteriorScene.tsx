@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef, useCallback } from 'react';
 import { useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
@@ -9,6 +9,9 @@ import Furniture from './Furniture';
 import type { BuildingInfo } from './Info';
 import { hash, playersIn, useGame } from './Store';
 import PlayerHomeDetails from '../zoned/Interior/PlayerHomeDetails';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+
+// const controlsRef = useRef<OrbitControlsImpl>(null)
 
 // Room view configuration: looking diagonally from a top-corner perspective
 const ISO_ANGLE = Math.PI / 3.6; // Controls vertical tilt (~50 degrees from straight down)
@@ -119,12 +122,27 @@ function Window({ x, z }: { x: number; z: number }) {
     );
 }
 
+// const rotateRoom = useCallback(() => {
+//     const controls = controlsRef.current;
+//     if (!controls) return;
+
+//     const offset = new THREE.Vector3().subVectors(
+//         controls.object.position,
+//         controls.target
+//     );
+
+//     // Turn to the opposite side while preserving camera height and distance.
+//     offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+
+//     controls.object.position.copy(controls.target).add(offset);
+//     controls.update();
+// }, []);
+
 export default function InteriorScene({ info }: { info: BuildingInfo }) {
     const { size, floor, wall, ground, furniture } = info.interior;
     const [w, d] = size;
     const chat = useGame((s) => s.chat);
     const target = useRef<[number, number] | null>(null);
-
     const floorTex = useMemo(() => makeChecker(floor[0], floor[1], w, d), [floor, w, d]);
 
     const npcs = useMemo(() => {
@@ -214,6 +232,7 @@ export default function InteriorScene({ info }: { info: BuildingInfo }) {
             <Avatar name="you" shirt="#f59e0b" skin="#8d5524" start={[doorX, -d / 2 + 1.1]} bounds={bounds} target={target} say={chat?.text ?? null} isYou />
 
             <OrbitControls
+                // ref={controlsRef}
                 makeDefault
                 target={ROOM_TARGET}
                 enableRotate={true}

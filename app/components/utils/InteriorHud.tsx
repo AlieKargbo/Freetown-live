@@ -12,18 +12,39 @@ import {
   FlaskConical,
   House,
   Link2,
-  Map,
   Pill,
   Send,
-  ShoppingBag,
-  Smartphone,
   Sparkles,
   Store,
   Utensils,
   UsersRound,
   Waves,
+  BriefcaseBusiness,
+  Gem,
+  Menu,
+  X,
+  Volume2,
+  Target,
+  Home,
+  Settings,
+  UserRound,
+  Smartphone,
+  Map,
+  ShoppingBag,
+  EyeOff,
   type LucideIcon,
 } from 'lucide-react';
+
+type InteriorHudProps = {
+  money?: number;
+  happiness?: string;
+  visits?: string;
+  online?: string;
+  onGetJob?: () => void;
+  onGemHunt?: () => void;
+  onNavigate?: (page: string) => void;
+};
+
 import type { BuildingInfo } from './Info';
 import { CURRENCY, game, playersIn, useGame } from './Store';
 
@@ -70,7 +91,8 @@ function activityIcon(label: string): LucideIcon {
   return ACTIVITY_ICONS[label.toLowerCase()] ?? Sparkles;
 }
 
-export default function InteriorHud({ info }: { info: BuildingInfo }) {
+export default function InteriorHud({ 
+  info }: { info: BuildingInfo }) {
   const money = useGame((s) => s.money);
   const [text, setText] = useState('');
   const [open, setOpen] = useState(true);
