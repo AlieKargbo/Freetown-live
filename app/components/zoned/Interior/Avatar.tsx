@@ -9,6 +9,7 @@ type Props = {
   name: string;
   shirt: string;
   skin: string;
+  hairColor?: string;
   pants?: string;
   start: [number, number]; // [x, z]
   bounds: [number, number]; // half-extents of the area the avatar may walk in
@@ -23,7 +24,7 @@ type Props = {
 const SPEED = 0.8; // units per second
 
 // Blocky low-poly person. Legs and arms swing while it walks.
-export default function Avatar({ name, shirt, skin, pants = '#1f2937', start, bounds, target, say, isYou = false, seed = 1 }: Props) {
+export default function Avatar({ name, shirt, skin, hairColor = '#1c1917', pants = '#1f2937', start, bounds, target, say, isYou = false, seed = 1 }: Props) {
   const group = useRef<THREE.Group>(null);
   const legL = useRef<THREE.Group>(null);
   const legR = useRef<THREE.Group>(null);
@@ -113,20 +114,20 @@ export default function Avatar({ name, shirt, skin, pants = '#1f2937', start, bo
       </mesh>
       <mesh position={[0, 1.35, -0.01]} scale={[1, 0.6, 1]}>
         <sphereGeometry args={[0.18, 14, 10]} />
-        <meshStandardMaterial color="#1c1917" />
+        <meshStandardMaterial color={hairColor} />
       </mesh>
 
       <Html position={[0, 1.8, 0]} center zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <div className="flex flex-col items-center gap-1">
           {say && (
-            <span className="max-w-[180px] rounded-2xl bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-lg">{say}</span>
+            <span className="max-w-45 rounded-2xl bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-lg">{say}</span>
           )}
           <span
             className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold text-white shadow ${
               isYou ? 'bg-emerald-500 ring-2 ring-white' : 'bg-blue-600'
             }`}
           >
-            {isYou ? 'You' : `@${name}`}
+            {isYou ? name : `@${name}`}
           </span>
         </div>
       </Html>

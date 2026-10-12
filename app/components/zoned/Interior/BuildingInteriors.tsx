@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import Avatar from './Avatar';
 import Furniture from './Furniture';
 import type { BuildingInfo } from '../../utils/Info';
-import { hash, playersIn, useGame } from '../../Player/Store';
+import { hash, playersIn, useGame } from '../../utils/Store';
 
 // Corner view like the reference screenshots: 45° around, tilted down. Only pan and zoom are allowed.
 const TILT = 0.95; // radians from straight-down
@@ -111,7 +111,19 @@ export default function InteriorScene({ info }: { info: BuildingInfo }) {
   const { size, floor, wall, ground, furniture } = info.interior;
   const [w, d] = size;
   const chat = useGame((s) => s.chat);
+  const player = useGame((s) => s.player);
   const target = useRef<[number, number] | null>(null);
+
+  const playerShirt = player?.outfit === 'Office' ? '#111827'
+    : player?.outfit === 'Site work' ? '#f97316'
+    : player?.outfit === 'School' ? '#f8fafc'
+    : player?.outfit === 'Traditional' ? '#166534'
+    : player?.outfit === 'Casual' ? '#d6bda5'
+    : player?.accent ?? '#f59e0b';
+  const playerPants = player?.outfit === 'School' ? '#1e3a8a'
+    : player?.outfit === 'Owambe' ? '#111827'
+    : player?.outfit === 'Traditional' ? '#9f1239'
+    : '#334155';
 
   const floorTex = useMemo(() => makeChecker(floor[0], floor[1], w, d), [floor, w, d]);
 
@@ -193,7 +205,18 @@ export default function InteriorScene({ info }: { info: BuildingInfo }) {
       {npcs.map((n) => (
         <Avatar key={n.name} name={n.name} shirt={n.shirt} skin={n.skin} start={n.start} bounds={bounds} seed={n.seed} />
       ))}
-      <Avatar name="you" shirt="#f59e0b" skin="#8d5524" start={[doorX, -d / 2 + 1.1]} bounds={bounds} target={target} say={chat?.text ?? null} isYou />
+      <Avatar
+        name={player?.name ?? 'you'}
+        shirt={playerShirt}
+        skin={player?.skin ?? '#8d5524'}
+        hairColor={player?.hairColor}
+        pants={playerPants}
+        start={[doorX, -d / 2 + 1.1]}
+        bounds={bounds}
+        target={target}
+        say={chat?.text ?? null}
+        isYou
+      />
 
       <OrbitControls
         makeDefault

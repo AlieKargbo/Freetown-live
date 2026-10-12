@@ -33,6 +33,10 @@ import BuildingPopup from './utils/BuildingPopup';
 import InteriorHud from './utils/InteriorHud';
 import { game, useGame } from './utils/Store';
 import { PLAYER_HOME_INFO } from './zoned/Interior/playerHomeInfo';
+
+import { useEffect, useState } from 'react';
+import WelcomeTour from './zoned/Interior/WelcomeTour';
+
 // View from the screenshot: looking north from the south, tilted ~49° from straight down.
 // The tilt is locked; the player can only pan and zoom.
 // const TILT = 0.85; // radians from straight-down
@@ -241,13 +245,33 @@ function LumelyConnectorRoad() {
 
 
 export default function WorldCanvas() {
-  const interior = useGame((s) => s.interior);
+    const interior = useGame((s) => s.interior);
     const popup = useGame((s) => s.popup);
+    const [showWelcomeTour, setShowWelcomeTour] = useState(false);
+
+    useEffect(() => {
+        if (interior?.id !== 'player-home') {
+            setShowWelcomeTour(false);
+            return;
+        }
+
+        try {
+            const pending =
+                localStorage.getItem('lagos-life-welcome-tour-pending') === 'true';
+
+            const completed =
+                localStorage.getItem('lagos-life-welcome-tour-completed') === 'true';
+
+            setShowWelcomeTour(pending && !completed);
+        } catch {
+            setShowWelcomeTour(false);
+        }
+    }, [interior?.id]);
 
     const openHome = () => {
-    game.closePopup();
+        game.closePopup();
         game.enter(PLAYER_HOME_INFO, 0);
-  };
+    };
     return (
         <div className="relative h-screen w-full overflow-hidden bg-cyan-400">
             <Canvas
@@ -402,20 +426,49 @@ export default function WorldCanvas() {
                 )}
             </Canvas>
 
+
+            {/* Building information popup */}
             <BuildingPopup />
-            {interior && <InteriorHud info={interior} />}
-            {/* Popup and HUD must be outside Canvas because they are HTML UI */}
-            {!interior && !popup && (
+
+            {/* City-map HUD: signup, login, status bar and home entry */}
+            {!interior && (
                 <Hud
                     chips={[
-                        { icon: '🏠', label: 'Test player house', onClick: openHome },
+                        {
+                            icon: '🏠',
+                            label: 'Enter my home',
+                            onClick: openHome,
+                        },
                     ]}
                     headline="Explore Freetown, find a place to call home."
+                />
+            )}
+
+            {/* Interior HUD */}
+            {interior && <InteriorHud info={interior} />}
+
+            {/* Show the welcome tour only inside the player's home */}
+            {interior?.id === 'player-home' && showWelcomeTour && (
+                <WelcomeTour
+                    onClose={() => {
+                        setShowWelcomeTour(false);
+
+                        try {
+                            localStorage.setItem(
+                                'lagos-life-welcome-tour-completed',
+                                'true'
+                            );
+                            localStorage.removeItem(
+                                'lagos-life-welcome-tour-pending'
+                            );
+                        } catch {
+                            // Storage may be unavailable.
+                        }
+                    }}
                 />
             )}
         </div>
     );
 }
-
 
 

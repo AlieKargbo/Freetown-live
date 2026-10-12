@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { BuildingInfo } from './Info';
+import type { SimAppearance } from '../Character/CharacterCreator';
 
 // Change this one constant to switch the currency symbol everywhere (₦, Le, ...).
 export const CURRENCY = '₦';
@@ -8,12 +9,13 @@ type Chat = { text: string; t: number };
 
 type State = {
   money: number;
+  player: SimAppearance | null;
   popup: BuildingInfo | null; // building whose "enter" popup is open
   interior: BuildingInfo | null; // building the player is currently inside
   chat: Chat | null; // last thing the player said (shown as a bubble for a few seconds)
 };
 
-let state: State = { money: 1_091_000, popup: null, interior: null, chat: null };
+let state: State = { money: 1_091_000, player: null, popup: null, interior: null, chat: null };
 
 const listeners = new Set<() => void>();
 const subscribe = (l: () => void) => {
@@ -31,6 +33,7 @@ const set = (patch: Partial<State>) => {
 // (outside it) share state without any context bridging.
 export const game = {
   get: () => state,
+  setPlayer: (player: SimAppearance) => set({ player }),
   openPopup: (info: BuildingInfo) => set({ popup: info }),
   closePopup: () => set({ popup: null }),
   enter: (info: BuildingInfo, cost = 0) => set({ interior: info, popup: null, money: state.money - cost, chat: null }),
