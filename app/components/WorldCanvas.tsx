@@ -27,6 +27,7 @@ import {
 //import Hud from './Hud';
 
 import { BuildingNameScope } from './utils/BuildingNameScope';
+import Hud from './Hud';
 import InteriorScene from './utils/InteriorScene';
 import BuildingPopup from './utils/BuildingPopup';
 import InteriorHud from './utils/InteriorHud';
@@ -241,19 +242,12 @@ function LumelyConnectorRoad() {
 
 export default function WorldCanvas() {
   const interior = useGame((s) => s.interior);
+    const popup = useGame((s) => s.popup);
 
     const openHome = () => {
     game.closePopup();
         game.enter(PLAYER_HOME_INFO, 0);
   };
-    const toggleHomeView = () => {
-        if (interior) {
-            game.exit();
-            return;
-        }
-        openHome();
-    };
-
     return (
         <div className="relative h-screen w-full overflow-hidden bg-cyan-400">
             <Canvas
@@ -411,16 +405,14 @@ export default function WorldCanvas() {
             <BuildingPopup />
             {interior && <InteriorHud info={interior} />}
             {/* Popup and HUD must be outside Canvas because they are HTML UI */}
-            <button
-                type="button"
-                onClick={toggleHomeView}
-                aria-pressed={interior?.id === 'player-home'}
-                title={interior ? 'Return to map' : 'Test player house view'}
-                className="absolute bottom-5 left-5 z-20 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-3 text-sm font-semibold text-slate-800 shadow-lg ring-1 ring-slate-900/10 transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
-            >
-                {interior ? <MapIcon size={18} aria-hidden="true" /> : <Home size={18} aria-hidden="true" />}
-                <span>{interior ? 'Back to map' : 'Test player house'}</span>
-            </button>
+            {!interior && !popup && (
+                <Hud
+                    chips={[
+                        { icon: '🏠', label: 'Test player house', onClick: openHome },
+                    ]}
+                    headline="Explore Freetown, find a place to call home."
+                />
+            )}
         </div>
     );
 }

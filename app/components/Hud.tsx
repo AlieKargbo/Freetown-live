@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { CURRENCY, useGame } from './utils/Store';
 
 type Chip = { icon: string; label: string; onClick?: () => void };
 
@@ -56,6 +57,8 @@ export default function Hud({
   signupHref = '/signup',
   loginHref = '/login',
 }: Props) {
+  const money = useGame((state) => state.money);
+
   return (
     // The overlay itself ignores the pointer so the map can still be dragged; only the cards catch it.
     <div className="pointer-events-none absolute inset-0 z-50 flex flex-col justify-between">
@@ -64,7 +67,7 @@ export default function Hud({
         <header className="pointer-events-auto flex w-full max-w-3xl items-center justify-between gap-3 rounded-full bg-white/90 py-2 pl-4 pr-2 shadow-lg backdrop-blur">
           <div className="flex min-w-0 items-center gap-3">
             <span className="text-2xl leading-none">👑</span>
-            <span className="truncate text-lg font-extrabold tracking-tight text-slate-800">Lagos Life</span>
+            <span className="truncate text-lg font-extrabold tracking-tight text-slate-800">Freetown Life</span>
             <span className="hidden items-center gap-1.5 text-sm font-semibold text-emerald-600 sm:flex">
               <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
               {compact.format(online)} online
@@ -74,6 +77,9 @@ export default function Hud({
             </span>
           </div>
           <div className="flex shrink-0 items-center gap-1">
+            <span className="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700" aria-label="Wallet balance">
+              {CURRENCY}{compact.format(money)}
+            </span>
             <a href={signupHref} className="rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-emerald-600">
               Sign up
             </a>
@@ -113,7 +119,7 @@ export default function Hud({
               ))}
             </div>
             <p className="text-sm text-slate-500">
-              <span className="font-bold text-slate-800">{compact.format(online)} Lagosians</span> playing right now · free
+              <span className="font-bold text-slate-800">{compact.format(online)} Freetowners</span> playing right now · free
             </p>
           </div>
 
