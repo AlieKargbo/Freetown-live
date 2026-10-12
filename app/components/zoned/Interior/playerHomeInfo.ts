@@ -9,7 +9,7 @@ export const PLAYER_HOME_INFO: BuildingInfo = {
   tagline: 'Your space. Your life. Make yourself at home.',
   banner: {
     badge: 'MY HOME',
-    line: 'Welcome home! Rest, relax, and make it yours.',
+    line: '',
   },
   activities: [
     { emoji: '🛏️', label: 'Sleep' },

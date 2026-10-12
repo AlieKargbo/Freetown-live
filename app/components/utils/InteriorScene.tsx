@@ -10,11 +10,6 @@ import type { BuildingInfo } from './Info';
 import { hash, playersIn, useGame } from './Store';
 import PlayerHomeDetails from '../zoned/Interior/PlayerHomeDetails';
 
-// Isometric camera matching WorldCanvas.tsx
-// const ISO_ANGLE = Math.acos(1 / Math.sqrt(3));
-// const ISO_AZIMUTH = Math.PI / 4;
-// const ROOM_TARGET: [number, number, number] = [0, 0.6, 0];
-
 // Room view configuration: looking diagonally from a top-corner perspective
 const ISO_ANGLE = Math.PI / 3.6; // Controls vertical tilt (~50 degrees from straight down)
 const ISO_AZIMUTH = Math.PI / 4;  // 45-degree diagonal rotation to show two main walls
@@ -165,12 +160,6 @@ export default function InteriorScene({ info }: { info: BuildingInfo }) {
                 <circleGeometry args={[Math.max(w, d) * 2.2, 64]} />
                 <meshStandardMaterial color={ground} />
             </mesh>
-
-            {/* Floor slab + checkerboard (click to walk) */}
-            {/* <mesh position={[0, -0.15, 0]}>
-        <boxGeometry args={[w, 0.3, d]} />
-        <meshStandardMaterial color="#6b4a2f" />
-      </mesh> */}
 
             {/* Circular island base */}
             <mesh
