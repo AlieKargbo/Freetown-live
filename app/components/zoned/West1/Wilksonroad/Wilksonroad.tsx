@@ -21,12 +21,13 @@ import {
     ArbadeenWhiteTower as WhiteTower,
     ArbadeenYouthSportCenter as YouthSportCenter,
     GodrichFineDiningRestaurant as FineDiningRestaurant,
+    Billboard,
 
 } from '@/app/components/zoned/BuildingImports';
 
-    // SharedFamilyRestaurant as FamilyRestaurant,
-    // SharedMediumClassShop as MediumClassShop,
-    // SharedHighClassShop as HighClassShop,
+// SharedFamilyRestaurant as FamilyRestaurant,
+// SharedMediumClassShop as MediumClassShop,
+// SharedHighClassShop as HighClassShop,
 import {
     GolfClub,
     AfricanMarket,
@@ -40,16 +41,16 @@ import {
 
 
 import {
-  Bank,
-  FamilyRestaurant,
-  HighClassShop,
-  LowClassShop,
-  LowClassShopTwo,
-  MediumClassShop,
-  LowIncomeHouseOne,
-  LowIncomeHouseTwo,
-  MiddleIncomeHouseTwo,
-  HighIncomeHouse,
+    Bank,
+    FamilyRestaurant,
+    HighClassShop,
+    LowClassShop,
+    LowClassShopTwo,
+    MediumClassShop,
+    LowIncomeHouseOne,
+    LowIncomeHouseTwo,
+    MiddleIncomeHouseTwo,
+    HighIncomeHouse,
 } from '../../Buildings/CityBuildings';
 
 
@@ -94,7 +95,7 @@ export default function Mainland() {
                 { x: 14, z: 5.5, radius: 3 },
                 { x: -10, z: 2.5, radius: 3.2 },
                 { x: 0, z: 0, radius: 4 },
-                { x: 18, z: 0, radius: 5 },
+                { x: 18, z: 0, radius: 7 },
                 { x: 8, z: -10, radius: 4 },
                 { x: 14, z: -10, radius: 4 },
                 { x: -10, z: -10, radius: 3 },
@@ -102,6 +103,23 @@ export default function Mainland() {
             roads: [{ x: cx, z: roadZ, width, depth: ROAD_DEPTH }],
         },
     ), [cx, cz, width, backEdge, frontEdge, roadZ]);
+    const billboardPoints = useMemo(() => scatterGroundPoints(
+        { minX: 9, maxX: 13, minZ: -8, maxZ: -3 },
+        {
+            count: 1,
+            seed: 2902,
+            minSpacing: 1,
+            edgePadding: 0.2,
+            obstacles: [
+                { x: 8, z: 5.5, radius: 3.5 },
+                { x: 14, z: 5.5, radius: 3.5 },
+                { x: 8, z: 1, radius: 3.5 },
+                { x: 0, z: 0, radius: 5 },
+                { x: 18, z: 0, radius: 5 },
+            ],
+            roads: [{ x: cx, z: roadZ, width, depth: ROAD_DEPTH }],
+        },
+    ), [cx, width, roadZ]);
     // const treePositions = useMemo(
     //     () => makeTreePositions(cx, cz, width, backEdge, frontEdge, roadZ),
     //     [cx, cz, width, backEdge, frontEdge, roadZ],
@@ -139,13 +157,13 @@ export default function Mainland() {
             <PresidentialCompound position={[54, 0, 8]} /> */}
 
 
-{/* 
+            {/* 
             <GolfClub position={[-15, 0, -10]} />
             <AfricanMarket position={[-8, 0, -10]} />
             <BeachBuilding position={[0, 0, -10]} /> */}
 
             <OfficeTowerOne position={[-19, 0, -10]} nameOverride="Africell Office" />
-{/* 
+            {/* 
             <BusStation position={[-8, 0, -16]} />
             <MilitaryHQ position={[8, 0, -16]} /> */}
 
@@ -157,13 +175,51 @@ export default function Mainland() {
             <LowClassShopTwo position={[-5, 0, -19]} />
              */}
 
-            
+
             <LowIncomeHouseOne position={[-4, 0, - 15]} showPin={false} />
             <LowIncomeHouseTwo position={[7, 0, - 15]} showPin={false} />
             <MiddleIncomeHouseTwo position={[-15, 0, - 15]} />
 
             <Trees points={vegetation} seed={444} size={0.8} />
+            {billboardPoints.map((position, index) => (
+                <Billboard key={`wilkson-billboard-${index}`} position={position} />
+            ))}
 
+            // Food advertisement near a busy intersection
+            <Billboard
+                position={[10, 0, -15]}
+                title="TASTE FREENET"
+                subtitle="Fresh food, every day"
+                brand="JUBA KITCHEN"
+                emoji="🍲"
+                backgroundColor="#14532d"
+                accentColor="#facc15"
+            />
+
+            {/* // Mobile network advertisement */}
+            <Billboard
+                position={[18, 0, -25]}
+                title="MORE DATA"
+                subtitle="Stay connected across Sierra Leone"
+                brand="SALONE CONNECT"
+                emoji="📱"
+                backgroundColor="#075985"
+                accentColor="#38bdf8"
+                rotation={Math.PI / 4}
+            />
+
+            {/* // Business promotion */}
+            <Billboard
+                position={[-12, 0, -20]}
+                title="SHOP LOCAL"
+                subtitle="Support Freetown businesses"
+                brand="FREETOWN LIFE"
+                emoji="🛍️"
+                backgroundColor="#7f1d1d"
+                accentColor="#fbbf24"
+                width={5}
+                height={2.5}
+            />
 
             {/* Name, painted on the ground behind the road */}
             {zone.label && (

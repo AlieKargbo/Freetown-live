@@ -4,6 +4,7 @@ import { createContext, useContext, useId, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
 
 type NameResolver = {
+  area: string;
   resolve: (defaultName: string, instanceId: string) => string;
 };
 
@@ -51,7 +52,7 @@ const VENUE_NAMES: Record<string, string[]> = {
   'Ice Cream Cafe': ['Sweet Tide Creamery'],
   'Tiki Bar': ['Tiki Cove'],
   'Bus Station': ['Lumley Junction Transit'],
-  'Military Headquarters': ['Wilkson Garrison'],
+  'Military Headquarters': ['Cockerill Barracks'],
   'Beauty Salon': ['Golden Comb Studio'],
   'Radio Station': ['Freetown Signal House'],
   'Police Station': ['Wilkson Community Police Post'],
@@ -82,7 +83,10 @@ const VENUE_NAMES: Record<string, string[]> = {
 
 const AREA_VENUE_NAMES: Record<string, Record<string, string[]>> = {
   Godrich: { 'Secondary School': ['Hill Valley Academy'] },
-  Murrytong: { 'Grammar School': ['Sierra Leone Grammar School'] },
+  Murrytong: { 
+    'Grammar School': ['Sierra Leone Grammar School'],
+    'Military Headquarters': ['Cockerill Barracks'],
+ },
   'Congo Cross': { 'Secondary School': ['Lebanese International School'] },
   'Wilkson Road': {
     'Youth Sports Center': ['YSC'],
@@ -111,6 +115,7 @@ export function BuildingNameScope({
   const assignedNames = useRef(new Map<string, string>());
   const nextByType = useRef(new Map<string, number>());
   const resolver = useMemo<NameResolver>(() => ({
+    area,
     resolve(defaultName, instanceId) {
       const existingName = assignedNames.current.get(instanceId);
       if (existingName) return existingName;
@@ -137,4 +142,8 @@ export function useBuildingDisplayName(defaultName: string) {
   const resolver = useContext(BuildingNameContext);
   const instanceId = useId();
   return resolver?.resolve(defaultName, instanceId) ?? defaultName;
+}
+
+export function useBuildingArea() {
+  return useContext(BuildingNameContext)?.area ?? 'Freetown';
 }

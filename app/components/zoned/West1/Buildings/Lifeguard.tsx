@@ -2,7 +2,7 @@
 
 import { Text } from '@react-three/drei';
 import BuildingPin from '../../../utils/BuildingPins';
-import type { BuildingInfo } from '../../../Player/Info';
+import type { BuildingInfo } from '../../../utils/Info';
 
 export const info: BuildingInfo = {
   id: 'lifeguard-tower',
@@ -103,7 +103,7 @@ export default function LifeguardTower({ position }: Props) {
         </mesh>
       ))}
 
-      <BuildingPin emoji={info.emoji} label={info.name} height={LIFEGUARD_HEIGHT} />
+      <BuildingPin emoji={info.emoji} label={info.name} height={LIFEGUARD_HEIGHT} info={info} />
     </group>
   );
 }

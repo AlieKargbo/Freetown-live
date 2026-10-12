@@ -1,7 +1,7 @@
 'use client';
 
 import BuildingPin from '../../../utils/BuildingPins';
-import type { BuildingInfo } from '../../../Player/Info';
+import type { BuildingInfo } from '../../../utils/Info';
 
 export const info: BuildingInfo = {
   id: 'golf-park',
@@ -138,7 +138,7 @@ export default function GolfPark({ position, nameOverride }: Props) {
       ))}
 
       {/* Icon on the building */}
-      <BuildingPin emoji={info.emoji} label={info.name} height={GOLF_PARK_HEIGHT} nameOverride={nameOverride} />
+      <BuildingPin emoji={info.emoji} label={info.name} height={GOLF_PARK_HEIGHT} nameOverride={nameOverride} info={info} />
     </group>
   );
 }

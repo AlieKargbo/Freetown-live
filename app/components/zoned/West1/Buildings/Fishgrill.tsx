@@ -2,7 +2,7 @@
 
 import { Text } from '@react-three/drei';
 import BuildingPin from '../../../utils/BuildingPins';
-import type { BuildingInfo } from '../../../Player/Info';
+import type { BuildingInfo } from '../../../utils/Info';
 
 export const info: BuildingInfo = {
   id: 'fish-grill',
@@ -122,7 +122,7 @@ export default function FishGrill({ position }: Props) {
         <meshStandardMaterial color="#ef4444" />
       </mesh>
 
-      <BuildingPin emoji={info.emoji} label={info.name} height={FISH_GRILL_HEIGHT} />
+      <BuildingPin emoji={info.emoji} label={info.name} height={FISH_GRILL_HEIGHT} info={info} />
     </group>
   );
 }

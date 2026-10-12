@@ -2,7 +2,7 @@
 
 import BuildingPin from '../../../utils/BuildingPins';
 import { Text } from '@react-three/drei';
-import type { BuildingInfo } from '../../../Player/Info';
+import type { BuildingInfo } from '../../../utils/Info';
 
 export const info: BuildingInfo = {
   id: 'gym',
@@ -100,7 +100,7 @@ export default function Gym({ position }: Props) {
       </group>
 
       {/* Icon on the building */}
-      <BuildingPin emoji={info.emoji} label={info.name} height={GYM_HEIGHT} />
+      <BuildingPin emoji={info.emoji} label={info.name} height={GYM_HEIGHT} info={info} />
     </group>
   );
 }

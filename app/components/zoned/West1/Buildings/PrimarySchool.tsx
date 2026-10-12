@@ -97,7 +97,7 @@ export default function PrimarySchool({ position }: Props) {
         <meshStandardMaterial color="#f8fafc" />
       </mesh>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={PRIMARY_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={PRIMARY_HEIGHT} info={info} />
     </group>
   );
 }

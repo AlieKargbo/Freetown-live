@@ -104,7 +104,7 @@ export default function YouthSportCenter({ position, nameOverride }: Props) {
         <meshStandardMaterial color="#fb923c" />
       </mesh>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={YOUTH_SPORT_HEIGHT} nameOverride={nameOverride} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={YOUTH_SPORT_HEIGHT} nameOverride={nameOverride} info={info} />
     </group>
   );
 }

@@ -2,7 +2,7 @@
 
 import { Text } from '@react-three/drei';
 import BuildingPin from '../../../utils/BuildingPins';
-import type { BuildingInfo } from '../../../Player/Info';
+import type { BuildingInfo } from '../../../utils/Info';
 
 export const info: BuildingInfo = {
   id: 'night-club',
@@ -131,7 +131,7 @@ export default function NightClub({ position, nameOverride }: Props) {
       ))}
 
       {/* Icon on the building */}
-      <BuildingPin emoji={info.emoji} label={info.name} height={H + 0.55} nameOverride={nameOverride} />
+      <BuildingPin emoji={info.emoji} label={info.name} height={H + 0.55} nameOverride={nameOverride} info={info} />
     </group>
   );
 }

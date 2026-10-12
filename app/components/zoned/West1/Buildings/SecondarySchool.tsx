@@ -102,7 +102,7 @@ export default function SecondarySchool({ position, nameOverride }: Props) {
         <meshStandardMaterial color="#0f172a" />
       </mesh>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={SECONDARY_HEIGHT} nameOverride={nameOverride} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={SECONDARY_HEIGHT} nameOverride={nameOverride} info={info} />
     </group>
   );
 }

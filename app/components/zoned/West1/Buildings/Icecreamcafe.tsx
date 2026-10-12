@@ -1,7 +1,7 @@
 'use client';
 
 import BuildingPin from '../../../utils/BuildingPins';
-import type { BuildingInfo } from '../../../Player/Info';
+import type { BuildingInfo } from '../../../utils/Info';
 
 export const info: BuildingInfo = {
   id: 'ice-cream-cafe',
@@ -94,7 +94,7 @@ export default function IceCreamCafe({ position }: Props) {
       </mesh>
 
       {/* Icon on the building */}
-      <BuildingPin emoji={info.emoji} label={info.name} height={ICE_CREAM_HEIGHT} />
+      <BuildingPin emoji={info.emoji} label={info.name} height={ICE_CREAM_HEIGHT} info={info} />
     </group>
   );
 }

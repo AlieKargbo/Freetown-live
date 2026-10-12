@@ -2,7 +2,7 @@
 
 import { Text } from '@react-three/drei';
 import BuildingPin from '../../../utils/BuildingPins';
-import type { BuildingInfo } from '../../../Player/Info';
+import type { BuildingInfo } from '../../../utils/Info';
 
 export const info: BuildingInfo = {
   id: 'surf-shop',
@@ -94,7 +94,7 @@ export default function SurfShop({ position }: Props) {
         </mesh>
       ))}
 
-      <BuildingPin emoji={info.emoji} label={info.name} height={SURF_SHOP_HEIGHT} />
+      <BuildingPin emoji={info.emoji} label={info.name} height={SURF_SHOP_HEIGHT} info={info} />
     </group>
   );
 }

@@ -4,6 +4,7 @@ import { Text } from '@react-three/drei';
 import { useMemo } from 'react';
 import type { ZoneConfig } from '@/app/components/zoned/BuildingImports';
 import { scatterGroundPoints, Trees } from '@/app/components/zoned/West2/Landmarks/Scatter';
+import Billboard from '../../Buildings/Billboard';
 import {
     ArbadeenChurch as Church,
     ArbadeenGrammarSchool as GrammarSchool,
@@ -58,6 +59,22 @@ export default function Mainland() {
             roads: [{ x: cx, z: roadZ, width, depth: ROAD_DEPTH }],
         },
     ), [cx, cz, width, backEdge, frontEdge, roadZ]);
+    const billboardPoints = useMemo(() => scatterGroundPoints(
+        { minX: -21, maxX: -13, minZ: -16, maxZ: -12 },
+        {
+            count: 1,
+            seed: 3903,
+            minSpacing: 1,
+            edgePadding: 0.2,
+            obstacles: [
+                { x: -8, z: -24, radius: 3.5 },
+                { x: -1, z: -24, radius: 3 },
+                { x: -16, z: -22, radius: 2.5 },
+                { x: 10, z: -24, radius: 3 },
+            ],
+            roads: [{ x: cx, z: roadZ, width, depth: ROAD_DEPTH }],
+        },
+    ), [cx, width, roadZ]);
 
     return (
         <group>
@@ -86,6 +103,9 @@ export default function Mainland() {
             <SecondarySchool position={[10, 0, -24]} nameOverride="Lebanese International School" />
 
             <Trees points={vegetation} seed={555} size={0.8} />
+            {billboardPoints.map((position, index) => (
+                <Billboard key={`congo-cross-billboard-${index}`} position={position} />
+            ))}
 
             {/* <GrammarSchool position={[-6, 0, 3.5]} />
             <TechnicalCollege position={[-2, 0, 3.5]} />

@@ -104,7 +104,7 @@ export default function NurserySchool({ position }: Props) {
         <meshStandardMaterial color="#facc15" />
       </mesh>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={NURSERY_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={NURSERY_HEIGHT} info={info} />
     </group>
   );
 }

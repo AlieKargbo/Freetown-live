@@ -105,7 +105,7 @@ export default function Stadium({ position, nameOverride }: Props) {
         {nameOverride?.toUpperCase() ?? 'STADIUM'}
       </Text>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={STADIUM_HEIGHT} nameOverride={nameOverride} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={STADIUM_HEIGHT} nameOverride={nameOverride} info={info} />
     </group>
   );
 }

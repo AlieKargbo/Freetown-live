@@ -2,7 +2,7 @@
 
 import { Text } from '@react-three/drei';
 import BuildingPin from '../../../utils/BuildingPins';
-import type { BuildingInfo } from '../../../Player/Info';
+import type { BuildingInfo } from '../../../utils/Info';
 
 export const info: BuildingInfo = {
   id: 'tiki-bar',
@@ -121,7 +121,7 @@ export default function TikiBar({ position }: Props) {
         TIKI BAR
       </Text>
 
-      <BuildingPin emoji={info.emoji} label={info.name} height={TIKI_BAR_HEIGHT} />
+      <BuildingPin emoji={info.emoji} label={info.name} height={TIKI_BAR_HEIGHT} info={info} />
     </group>
   );
 }

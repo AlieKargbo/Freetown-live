@@ -131,7 +131,7 @@ export default function PoliceStation({ position, nameOverride }: Props) {
         ))}
       </group>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={POLICE_HEIGHT} nameOverride={nameOverride} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={POLICE_HEIGHT} nameOverride={nameOverride} info={info} />
     </group>
   );
 }

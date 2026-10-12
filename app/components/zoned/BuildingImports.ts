@@ -104,11 +104,14 @@ export { default as GodrichWorld, zone as godrichZone } from './West3/Godrich/Go
 // Game UI
 // export { default as BuildingInterior } from '../utils/BuildingInterior';
 export { default as BuildingPins } from '../utils/BuildingPins';
+//export { default as InteriorScene } from './Interior/PlayerHouse';
 // export { default as BuildingPopup } from '../utils/BuildingPopup';
 // export { default as InteriorScene } from '../utils/InteriorScene';
 export type { ZoneConfig } from '../WorldCanvas';
-export type { BuildingInfo } from '../Player/./Info';
+export type { BuildingInfo } from '../utils/./Info';
 // export { default as WindowGrid } from './Utils/WindowGrid';
+
+export { default as Billboard } from './Buildings/Billboard';
 
 
 

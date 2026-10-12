@@ -312,8 +312,6 @@ export default function Murrytong() {
                 ))}
             </group>
 
-
-            <SharedBusStation position={[-40, 0, 2]} />
             <SharedMilitaryHQ position={[-30, 0, 2]} />
 
 

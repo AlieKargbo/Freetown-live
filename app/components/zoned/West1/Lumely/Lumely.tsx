@@ -30,6 +30,7 @@ import {
 import EmptyHousePlot from '../../Buildings/EmptyHousePlot';
 import { SharedBusStation, SharedMilitaryHQ } from '@/app/components/zoned/BuildingImports';
 import { scatterGroundPoints, Trees } from '@/app/components/zoned/West2/Landmarks/Scatter';
+import Billboard from '../../Buildings/Billboard';
 
 interface MainlandProps {
     roadConnectionZ?: number;
@@ -220,6 +221,22 @@ export default function Mainland({ roadConnectionZ }: MainlandProps = {}) {
             },
         );
     }, [malamaCx, malamaCz, malamaWidth, malamaBackEdge, malamaFrontEdge, malamaRoadCenterZ, malamaRoadLength]);
+    const lumelyBillboardPoints = useMemo(() => scatterGroundPoints(
+        { minX: 20, maxX: 27, minZ: 11.5, maxZ: 15.5 },
+        {
+            count: 1,
+            seed: 1901,
+            minSpacing: 1,
+            edgePadding: 0.25,
+            obstacles: [
+                { x: lumely2Cx + 3.5, z: lumely2Cz - 5, radius: 4.7 },
+                { x: lumely2Cx - 3, z: lumely2Cz - 5, radius: 4.5 },
+                { x: lumely2Cx - 9, z: lumely2Cz - 5, radius: 4.5 },
+                { x: cx + 12, z: backRowZ, radius: 6.5 },
+            ],
+            roads: [{ x: cx, z: cz, width, depth: ROAD_DEPTH }],
+        },
+    ), [cx, cz, width, lumely2Cx, lumely2Cz, backRowZ]);
     // const treePositions = useMemo(
     //     () => makeTreePositions(cx, cz, width, backEdge, frontEdge, roadZ),
     //     [cx, cz, width, backEdge, frontEdge, roadZ],
@@ -310,6 +327,9 @@ export default function Mainland({ roadConnectionZ }: MainlandProps = {}) {
             <IceCreamCafe position={[cx - 12, 0, backRowZ]} />
             <FamilyRestaurant position={[cx - 19, 0, backRowZ]} />
             <Trees points={lumelyTrees} seed={111} size={0.75} />
+            {lumelyBillboardPoints.map((position, index) => (
+                <Billboard key={`lumely-billboard-${index}`} position={position} />
+            ))}
 
             <HighClassShop position={[2, 0, backRowZ]} nameOverride="Freetown Mall" />
 

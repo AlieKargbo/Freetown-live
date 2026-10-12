@@ -2,7 +2,7 @@
 
 import BuildingPin from '../../../utils/BuildingPins';
 import { Text } from '@react-three/drei';
-import type { BuildingInfo } from '../../../Player/Info';
+import type { BuildingInfo } from '../../../utils/Info';
 
 export const info: BuildingInfo = {
   id: 'hotel',
@@ -109,7 +109,7 @@ export default function Hotel({ position, color = '#10b981', nameOverride }: Pro
       </mesh>
 
       {/* Icon on the building */}
-      <BuildingPin emoji={info.emoji} label={info.name} height={HOTEL_HEIGHT} nameOverride={nameOverride} />
+      <BuildingPin emoji={info.emoji} label={info.name} height={HOTEL_HEIGHT} nameOverride={nameOverride} info={info} />
     </group>
   );
 }

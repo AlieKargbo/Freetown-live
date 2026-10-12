@@ -135,7 +135,7 @@ export default function Hospital({ position, nameOverride }: Props) {
         ))}
       </group>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={HOSPITAL_HEIGHT} nameOverride={nameOverride} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={HOSPITAL_HEIGHT} nameOverride={nameOverride} info={info} />
     </group>
   );
 }

@@ -2,6 +2,7 @@
 
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
+import { Home, Map as MapIcon } from 'lucide-react';
 import * as THREE from 'three';
 
 import {
@@ -25,22 +26,12 @@ import {
 } from '@/app/components/zoned/BuildingImports';
 //import Hud from './Hud';
 
-//Zones
-// import Mainland, { zone as lumelyZone } from './zoned/West1/Lumely/Lumely';
-// import Arbadeen from './zoned/Arbadeen/Arbadeen';
-// import Godrich, { zone as godrichZone } from './zoned/Godrich/Godrich';
-// import Regent, { zone as regentZone } from './zoned/Regent/Regent';
-// import Wilksonroad, { zone as wilksonZone } from './zoned/Wilksonroad/Wilksonroad';
-// import Congocross, { zone as congoZone } from './zoned/Congocross/Congocross';
-// import Murrytong, { zone as murrytongZone } from './zoned/Congocross/Murrytong';
-// import Regent2 from './zoned/Regent/Regent2';
-// import Hillstation from './zoned/West2/Hillstation/Hillstation'
-// import Leicesterpeak from './zoned/West2/Hillstation/Leicesterpeak '
-// import InteriorScene from './utils/InteriorScene';
-// import BuildingPopup from './utils/BuildingPopup';
-// import InteriorHud from './utils/InteriorHud';
-import { useGame } from './Player/Store';
 import { BuildingNameScope } from './utils/BuildingNameScope';
+import InteriorScene from './utils/InteriorScene';
+import BuildingPopup from './utils/BuildingPopup';
+import InteriorHud from './utils/InteriorHud';
+import { game, useGame } from './utils/Store';
+import { PLAYER_HOME_INFO } from './zoned/Interior/playerHomeInfo';
 // View from the screenshot: looking north from the south, tilted ~49° from straight down.
 // The tilt is locked; the player can only pan and zoom.
 // const TILT = 0.85; // radians from straight-down
@@ -56,6 +47,8 @@ import { BuildingNameScope } from './utils/BuildingNameScope';
 // Camera position: [3.75, 37.5, 26.25], FOV: 38, Near: 1, Far: 700
 const CAMERA_POSITION: [number, number, number] = [3.75, 37.5, 26.25];
 const TARGET: [number, number, number] = [3.75, 0, 0];
+const HOUSE_CAMERA_POSITION: [number, number, number] = [0, 9, 15];
+const HOUSE_TARGET: [number, number, number] = [0, 1, 0];
 
 // Polar angle corresponding to y=37.5 and delta_z=26.25 (~35° tilt from vertical / top-down)
 const TILT = Math.atan2(CAMERA_POSITION[2] - TARGET[2], CAMERA_POSITION[1] - TARGET[1]);
@@ -183,6 +176,43 @@ function RoadConnections() {
     );
 }
 
+function AtlanticBoat({
+    position,
+    rotation,
+    hullColor,
+    cabinColor,
+}: {
+    position: [number, number, number];
+    rotation: number;
+    hullColor: string;
+    cabinColor: string;
+}) {
+    return (
+        <group position={position} rotation={[0, rotation, 0]}>
+            <mesh position={[0, 0.16, 0]} castShadow>
+                <boxGeometry args={[2.7, 0.34, 0.95]} />
+                <meshStandardMaterial color={hullColor} roughness={0.72} />
+            </mesh>
+            <mesh
+                position={[1.42, 0.16, 0]}
+                rotation={[0, 0, -Math.PI / 2]}
+                castShadow
+            >
+                <coneGeometry args={[0.5, 0.7, 4]} />
+                <meshStandardMaterial color={hullColor} roughness={0.72} />
+            </mesh>
+            <mesh position={[-0.35, 0.52, 0]} castShadow>
+                <boxGeometry args={[0.72, 0.48, 0.64]} />
+                <meshStandardMaterial color={cabinColor} />
+            </mesh>
+            <mesh position={[-0.35, 0.78, 0]}>
+                <boxGeometry args={[0.84, 0.08, 0.76]} />
+                <meshStandardMaterial color="#f8fafc" />
+            </mesh>
+        </group>
+    );
+}
+
 function LumelyConnectorRoad() {
     const roadWidth = 1.2;
     const roadY = 0.065;
@@ -208,86 +238,192 @@ function LumelyConnectorRoad() {
     );
 }
 
+
 export default function WorldCanvas() {
+  const interior = useGame((s) => s.interior);
+
+    const openHome = () => {
+    game.closePopup();
+        game.enter(PLAYER_HOME_INFO, 0);
+  };
+    const toggleHomeView = () => {
+        if (interior) {
+            game.exit();
+            return;
+        }
+        openHome();
+    };
+
     return (
-        <div className="w-full h-screen bg-cyan-400 relative">
-            <Canvas camera={{ position: CAMERA_POSITION, fov: 38, near: 1, far: 700 }} onCreated={({ camera }) => {
-                camera.lookAt(...TARGET);
-            }}>
-                <color attach="background" args={['#22d3ee']} />
-                <ambientLight intensity={0.8} />
-                <directionalLight position={[10, 20, 10]} intensity={1.5} castShadow />
+        <div className="relative h-screen w-full overflow-hidden bg-cyan-400">
+            <Canvas
+                key={interior ? `interior-${interior.id}` : 'world-map'}
+                camera={{
+                    position: interior
+                        ? [0, 14, 18]
+                        : CAMERA_POSITION,
+                    fov: interior ? 42 : 38,
+                    near: 0.1,
+                    far: 700,
+                }}
+                onCreated={({ camera }) => {
+                    if (interior) {
+                        camera.lookAt(0, 0.6, 0);
+                    } else {
+                        camera.lookAt(...TARGET);
+                    }
+                }}
+            >
+                {interior ? (
+                    <>
+                        {/* Interior lighting and background */}
+                        <color attach="background" args={['#0b1437']} />
+                        <ambientLight intensity={0.75} />
+                        <directionalLight
+                            position={[8, 14, 6]}
+                            intensity={1.1}
+                            castShadow
+                        />
 
-                {/* Main Water / Ocean Background Plane */}
-                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.2, 0]}>
-                    <planeGeometry args={[100, 100]} />
-                    <meshStandardMaterial color="#38bdf8" />
-                </mesh>
+                        {/* Render the selected building's interior */}
+                        <InteriorScene info={interior} />
+                    </>
+                ) : (
+                    <>
+                        {/* City map */}
+                        <color attach="background" args={['#22d3ee']} />
+                        <ambientLight intensity={0.8} />
+                        <directionalLight
+                            position={[10, 20, 10]}
+                            intensity={1.5}
+                            castShadow
+                        />
 
-                <Text
-                    position={[4, -0.1, 35]}
-                    rotation={[-Math.PI / 2, 0, 0]}
-                    fontSize={1.5}
-                    letterSpacing={0.2}
-                    color="#ffffff"
-                    fillOpacity={0.85}
-                    anchorX="center"
-                    anchorY="middle"
-                >
-                    ATLANTIC
-                </Text>
+                        {/* Ocean */}
+                        <mesh
+                            rotation={[-Math.PI / 2, 0, 0]}
+                            position={[0, -0.2, 0]}
+                        >
+                            <planeGeometry args={[100, 100]} />
+                            <meshStandardMaterial color="#38bdf8" />
+                        </mesh>
 
-                {/* Land Mass */}
-                <BuildingNameScope area="Lumley">
-                    <Mainland roadConnectionZ={godrichZone.c[1]} />
-                </BuildingNameScope>
-                <BuildingNameScope area="Aberdeen">
-                    <Arbadeen />
-                </BuildingNameScope>
-                <BuildingNameScope area="Godrich">
-                    <Godrich />
-                </BuildingNameScope>
-                <BuildingNameScope area="Regent">
-                    <Regent roadConnectionZ={ROUNDABOUT_POSITION[2]} />
-                </BuildingNameScope>
-                <BuildingNameScope area="Wilkson Road">
-                    <Wilksonroad />
-                </BuildingNameScope>
-                <BuildingNameScope area="Congo Cross">
-                    <Congocross />
-                </BuildingNameScope>
-                <BuildingNameScope area="Murrytong">
-                    <Murrytong />
-                </BuildingNameScope>
-                <RoadConnections />
-                <Roundabout />
-                {/* <LumelyConnectorRoad /> */}
-                <BuildingNameScope area="Hillstation">
-                    <Hillstation />
-                </BuildingNameScope>
-                <BuildingNameScope area="Leicester Peak">
-                    <Leicesterpeak />
-                </BuildingNameScope>
+                        {/* Atlantic label */}
+                        <Text
+                            position={[4, -0.1, 35]}
+                            rotation={[-Math.PI / 2, 0, 0]}
+                            fontSize={1.5}
+                            letterSpacing={0.2}
+                            color="#ffffff"
+                            fillOpacity={0.85}
+                            anchorX="center"
+                            anchorY="middle"
+                        >
+                            ATLANTIC
+                        </Text>
 
-                <OrbitControls
-                    makeDefault
-                    target={TARGET}
-                    enableRotate={false}
-                    enableDamping
-                    dampingFactor={0.1}
-                    screenSpacePanning={false}
-                    minPolarAngle={TILT}
-                    maxPolarAngle={TILT}
-                    minDistance={5}
-                    maxDistance={80}
-                    mouseButtons={{ LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN }}
-                    touches={{ ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_PAN }}
-                />
+                        {/* Boats */}
+                        <AtlanticBoat
+                            position={[-42, -0.08, 34]}
+                            rotation={0.25}
+                            hullColor="#b91c1c"
+                            cabinColor="#f8fafc"
+                        />
+                        <AtlanticBoat
+                            position={[37, -0.08, 38]}
+                            rotation={-0.35}
+                            hullColor="#f59e0b"
+                            cabinColor="#1e3a8a"
+                        />
+                        <AtlanticBoat
+                            position={[-24, -0.08, 43]}
+                            rotation={0.6}
+                            hullColor="#0f766e"
+                            cabinColor="#f8fafc"
+                        />
+
+                        {/* Neighborhoods */}
+                        <BuildingNameScope area="Lumley">
+                            <Mainland roadConnectionZ={godrichZone.c[1]} />
+                        </BuildingNameScope>
+
+                        <BuildingNameScope area="Aberdeen">
+                            <Arbadeen />
+                        </BuildingNameScope>
+
+                        <BuildingNameScope area="Godrich">
+                            <Godrich />
+                        </BuildingNameScope>
+
+                        <BuildingNameScope area="Regent">
+                            <Regent roadConnectionZ={ROUNDABOUT_POSITION[2]} />
+                        </BuildingNameScope>
+
+                        <BuildingNameScope area="Wilkson Road">
+                            <Wilksonroad />
+                        </BuildingNameScope>
+
+                        <BuildingNameScope area="Congo Cross">
+                            <Congocross />
+                        </BuildingNameScope>
+
+                        <BuildingNameScope area="Murrytong">
+                            <Murrytong />
+                        </BuildingNameScope>
+
+                        <RoadConnections />
+                        <Roundabout />
+
+                        <BuildingNameScope area="Hillstation">
+                            <Hillstation />
+                        </BuildingNameScope>
+
+                        <BuildingNameScope area="Leicester Peak">
+                            <Leicesterpeak />
+                        </BuildingNameScope>
+
+                        {/* Locked-angle city camera */}
+                        <OrbitControls
+                            makeDefault
+                            target={TARGET}
+                            enableRotate={false}
+                            enableDamping
+                            dampingFactor={0.1}
+                            screenSpacePanning={false}
+                            minPolarAngle={TILT}
+                            maxPolarAngle={TILT}
+                            minDistance={5}
+                            maxDistance={80}
+                            mouseButtons={{
+                                LEFT: THREE.MOUSE.PAN,
+                                MIDDLE: THREE.MOUSE.DOLLY,
+                                RIGHT: THREE.MOUSE.PAN,
+                            }}
+                            touches={{
+                                ONE: THREE.TOUCH.PAN,
+                                TWO: THREE.TOUCH.DOLLY_PAN,
+                            }}
+                        />
+                    </>
+                )}
             </Canvas>
 
-            {/* <Hud /> */}
+            <BuildingPopup />
+            {interior && <InteriorHud info={interior} />}
+            {/* Popup and HUD must be outside Canvas because they are HTML UI */}
+            <button
+                type="button"
+                onClick={toggleHomeView}
+                aria-pressed={interior?.id === 'player-home'}
+                title={interior ? 'Return to map' : 'Test player house view'}
+                className="absolute bottom-5 left-5 z-20 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-3 text-sm font-semibold text-slate-800 shadow-lg ring-1 ring-slate-900/10 transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+            >
+                {interior ? <MapIcon size={18} aria-hidden="true" /> : <Home size={18} aria-hidden="true" />}
+                <span>{interior ? 'Back to map' : 'Test player house'}</span>
+            </button>
         </div>
     );
 }
+
 
 

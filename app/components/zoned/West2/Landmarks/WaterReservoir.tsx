@@ -4,8 +4,8 @@ import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
-import BuildingPin from '../Buildings/BuildingPin';
-import type { BuildingInfo } from '../Buildings/info';
+import { BuildingPins } from '@/app/components/zoned/BuildingImports';
+import type { BuildingInfo } from '../../../utils/Info';
 import { Trees } from './Scatter';
 
 type V3 = [number, number, number];
@@ -205,7 +205,7 @@ export default function WaterReservoir({ position }: Props) {
 
       <Trees points={trees} seed={4} size={1.05} />
 
-      <BuildingPin emoji={info.emoji} label={info.name} height={WATER_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={WATER_HEIGHT} info={info} />
     </group>
   );
 }

@@ -105,7 +105,7 @@ export default function TechnicalCollege({ position }: Props) {
         <meshStandardMaterial color="#334155" />
       </mesh>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={TECHNICAL_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={TECHNICAL_HEIGHT} info={info} />
     </group>
   );
 }

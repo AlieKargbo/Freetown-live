@@ -4,8 +4,8 @@ import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
-import BuildingPin from '../Buildings/BuildingPin';
-import type { BuildingInfo } from '../Buildings/info';
+import { BuildingPins } from '@/app/components/zoned/BuildingImports';
+import type { BuildingInfo } from '../../../utils/Info';
 import { Inst, Trees, type Item } from './Scatter';
 
 type V3 = [number, number, number];
@@ -284,7 +284,7 @@ export default function AnimalSanctuary({ position }: Props) {
         </mesh>
       </group>
 
-      <BuildingPin emoji={info.emoji} label={info.name} height={SANCTUARY_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={SANCTUARY_HEIGHT} info={info} />
     </group>
   );
 }

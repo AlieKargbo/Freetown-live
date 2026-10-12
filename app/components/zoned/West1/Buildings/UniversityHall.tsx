@@ -104,7 +104,7 @@ export default function UniversityHall({ position }: Props) {
         <meshStandardMaterial color="#facc15" />
       </mesh>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={UNIVERSITY_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={UNIVERSITY_HEIGHT} info={info} />
     </group>
   );
 }

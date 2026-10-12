@@ -131,7 +131,7 @@ export default function Mosque({ position }: Props) {
       <WindowGrid position={[-0.8, 0.6, 1.215]} width={0.6} height={0.4} cols={2} rows={1} fill={0.6} color="#fbbf24" emissive="#f59e0b" />
       <WindowGrid position={[0.8, 0.6, 1.215]} width={0.6} height={0.4} cols={2} rows={1} fill={0.6} color="#fbbf24" emissive="#f59e0b" />
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={MOSQUE_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={MOSQUE_HEIGHT} info={info} />
     </group>
   );
 }

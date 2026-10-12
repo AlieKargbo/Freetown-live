@@ -104,7 +104,7 @@ export default function GrammarSchool({ position }: Props) {
         <meshStandardMaterial color="#7c2d12" />
       </mesh>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={GRAMMAR_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={GRAMMAR_HEIGHT} info={info} />
     </group>
   );
 }

@@ -1,9 +1,12 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
-import { useBuildingDisplayName } from './BuildingNameScope';
+import { useBuildingArea, useBuildingDisplayName } from './BuildingNameScope';
+
+import { game } from './Store';
+import type { BuildingInfo } from './Info';
 
 type Props = {
   emoji: string;
@@ -11,6 +14,7 @@ type Props = {
   height: number; // top of the building (the pin floats a little above this)
   nameOverride?: string;
   onClick?: () => void;
+  info?: BuildingInfo;
 };
 
 const LIFT = 0.9; // gap between the building's top and the pin
@@ -21,9 +25,28 @@ const CHECK_EVERY = 0.25; // seconds between zoom checks
 
 // Put one inside a building's <group>. Collapsed = round icon. Expanded = pill that grows to the
 // right with the building's name. Expands on hover, on tap/click (toggle), or when zoomed in.
-export default function BuildingPin({ emoji, label, height, nameOverride, onClick }: Props) {
+export default function BuildingPin({ emoji, label, height, nameOverride, onClick, info}: Props) {
   const scopedName = useBuildingDisplayName(label);
   const displayName = nameOverride ?? scopedName;
+  const area = useBuildingArea();
+  const generatedId = useId();
+  const buildingInfo: BuildingInfo = info
+    ? { ...info, name: displayName }
+    : {
+        id: `${area}-${label}-${generatedId}`.toLowerCase().replace(/[^a-z0-9-]+/g, '-'),
+        name: displayName,
+        area,
+        emoji,
+        tagline: `${displayName} in ${area}`,
+        activities: [{ emoji, label: displayName }],
+        interior: {
+          size: [10, 8],
+          floor: ['#cbd5e1', '#94a3b8'],
+          wall: '#e2e8f0',
+          ground: '#14532d',
+          furniture: [],
+        },
+      };
   const [hovered, setHovered] = useState(false);
   const [pinned, setPinned] = useState(false);
   const [zoomedIn, setZoomedIn] = useState(false);
@@ -41,6 +64,11 @@ export default function BuildingPin({ emoji, label, height, nameOverride, onClic
 
   const expanded = hovered || pinned || zoomedIn;
 
+  const handleClick = () => {
+    game.openPopup(buildingInfo);
+    onClick?.();
+  };
+  
   return (
     <Html position={[0, height + LIFT, 0]} center zIndexRange={[20, 0]}>
       {/* Fixed-size anchor so the icon stays centred over the building while the pill grows */}
@@ -50,7 +78,7 @@ export default function BuildingPin({ emoji, label, height, nameOverride, onClic
           onPointerLeave={() => setHovered(false)}
           onClick={() => {
             setPinned((p) => !p);
-            onClick?.();
+            handleClick();
           }}
           className={`absolute left-0 top-0 flex cursor-pointer select-none items-center overflow-hidden rounded-full bg-white shadow-lg ring-2 transition-[max-width] duration-300 ease-out ${
             hovered || pinned ? 'ring-yellow-400' : 'ring-white'

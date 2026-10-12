@@ -95,7 +95,7 @@ export default function WhiteTower({ position, nameOverride }: Props) {
         <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={1.5} />
       </mesh>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={WHITE_TOWER_HEIGHT} nameOverride={nameOverride} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={WHITE_TOWER_HEIGHT} nameOverride={nameOverride} info={info} />
     </group>
   );
 }

@@ -90,7 +90,7 @@ export default function ScienceAcademy({ position }: Props) {
         <meshStandardMaterial color="#475569" />
       </mesh>
 
-      <BuildingPins emoji={info.emoji} label={info.name} height={SCIENCE_HEIGHT} />
+      <BuildingPins emoji={info.emoji} label={info.name} height={SCIENCE_HEIGHT} info={info} />
     </group>
   );
 }
