@@ -97,7 +97,7 @@ function Tree({ position }: { position: [number, number, number] }) {
 
 // One rectangular plot of land. Its top face sits at y = 0.
 // Camera looks north, so the "back" is the smaller-z edge and the "front" is the larger-z edge.
-export default function Mainland({ roadConnectionZ }: MainlandProps) {
+export default function Regent({ roadConnectionZ }: MainlandProps) {
     const [cx, cz] = zone.c;
     const [width, depth] = zone.size;
     const backEdge = cz - depth / 2;

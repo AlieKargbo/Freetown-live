@@ -7,11 +7,11 @@ import type { BuildingInfo } from './Info';
 type Ride = { id: string; emoji: string; label: string; cost: number };
 
 const RIDES: Ride[] = [
-  { id: 'Waka', emoji: '🚶🏾', label: 'Trek', cost: 0 },
+  { id: 'trek', emoji: '🚶🏾', label: 'Trek', cost: 0 },
   { id: 'okada', emoji: '🏍️', label: 'Okada', cost: 200 },
   { id: 'keke', emoji: '🛺', label: 'Keke', cost: 100 },
-    { id: 'Taxi', emoji: '🚕', label: 'Cab', cost: 500 },
-  { id: 'Poda Poda', emoji: '🚌', label: 'Danfo', cost: 100 },
+  { id: 'cab', emoji: '🚕', label: 'Cab', cost: 500 },
+  { id: 'poda-poda', emoji: '🚌', label: 'poda-poda', cost: 100 },
   
 
 ];
@@ -25,14 +25,8 @@ const isRushHour = () => {
 export default function BuildingPopup() {
   const info = useGame<BuildingInfo | null>((state) => state.popup);
   const money = useGame((s) => s.money);
-  const [ride, setRide] = useState('trek');
-  const [copied, setCopied] = useState(false);
-
-  // Start on "Trek" every time a different building is opened.
-  useEffect(() => {
-    setRide('trek');
-    setCopied(false);
-  }, [info?.id]);
+  const [rideChoice, setRideChoice] = useState<{ buildingId: string | null; ride: string }>({ buildingId: null, ride: 'trek' });
+  const [copiedFor, setCopiedFor] = useState<string | null>(null);
 
   useEffect(() => {
     if (!info) return;
@@ -44,6 +38,8 @@ export default function BuildingPopup() {
   if (!info) return null;
 
   const rush = isRushHour();
+  const ride = rideChoice.buildingId === info.id ? rideChoice.ride : 'trek';
+  const copied = copiedFor === info.id;
   const fare = (r: Ride) => (r.id === 'cab' && rush ? Math.round(r.cost * 1.5) : r.cost);
   const price = (r: Ride) => (fare(r) === 0 ? 'Free' : `${CURRENCY}${fare(r)}`);
   const chosen = RIDES.find((r) => r.id === ride) ?? RIDES[0];
@@ -52,7 +48,8 @@ export default function BuildingPopup() {
   const share = async () => {
     try {
       await navigator.clipboard.writeText(`${location.origin}${location.pathname}?b=${info.id}`);
-      setCopied(true);
+      setCopiedFor(info.id);
+      window.setTimeout(() => setCopiedFor((current) => current === info.id ? null : current), 2000);
     } catch {
       /* clipboard can be blocked; ignore */
     }
@@ -60,7 +57,7 @@ export default function BuildingPopup() {
 
   return (
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 p-4 backdrop-blur-md"
+      className="absolute inset-0 z-[200] flex items-center justify-center bg-black/20 p-4 backdrop-blur-md"
       onClick={() => game.closePopup()}
     >
       <div
@@ -111,7 +108,7 @@ export default function BuildingPopup() {
           {RIDES.map((r) => (
             <button
               key={r.id}
-              onClick={() => setRide(r.id)}
+              onClick={() => setRideChoice({ buildingId: info.id, ride: r.id })}
               className={`relative flex flex-col items-center rounded-2xl px-1 py-3 text-sm transition-colors ${
                 ride === r.id ? 'bg-blue-50 ring-2 ring-blue-500' : 'bg-slate-100 hover:bg-slate-200'
               } ${money < fare(r) ? 'opacity-50' : ''}`}
@@ -129,7 +126,7 @@ export default function BuildingPopup() {
 
         <button
           disabled={!canAfford}
-          onClick={() => game.enter(info, fare(chosen))}
+          onClick={() => game.travelTo(info, fare(chosen), chosen.label)}
           className="mt-4 w-full rounded-full bg-emerald-500 py-4 text-xl font-bold text-white shadow transition-colors hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           {canAfford ? `Go · ${price(chosen)}` : `Not enough ${CURRENCY}`}

@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
+import { game } from '../../utils/Store';
 
 type Props = {
   name: string;
@@ -77,7 +78,16 @@ export default function Avatar({ name, shirt, skin, hairColor = '#1c1917', pants
   });
 
   return (
-    <group ref={group} position={[start[0], 0, start[1]]} scale={1.15}>
+    <group
+      ref={group}
+      position={[start[0], 0, start[1]]}
+      scale={1.15}
+      onClick={(event) => {
+        if (isYou) return;
+        event.stopPropagation();
+        game.startActivity('chat', 'person');
+      }}
+    >
       <group ref={legL} position={[-0.1, 0.5, 0]}>
         <mesh position={[0, -0.25, 0]} castShadow>
           <boxGeometry args={[0.14, 0.5, 0.15]} />

@@ -74,7 +74,7 @@ const ROAD_DEPTH = 1.2;
 
 // One rectangular plot of land. Its top face sits at y = 0.
 // Camera looks north, so the "back" is the smaller-z edge and the "front" is the larger-z edge.
-export default function Mainland() {
+export default function Wilksonroad() {
     const [cx, cz] = zone.c;
     const [width, depth] = zone.size;
 

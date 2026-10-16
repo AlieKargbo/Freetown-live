@@ -33,7 +33,7 @@ export const zone: ZoneConfig = {
 
 const ROAD_DEPTH = 1.2;
 
-export default function Mainland() {
+export default function Congocross() {
     const [cx, cz] = zone.c;
     const [width, depth] = zone.size;
 

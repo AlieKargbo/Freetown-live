@@ -48,6 +48,7 @@ export default function GameHUD({
 }: GameHUDProps) {
   const [clean, setClean] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [panelTab, setPanelTab] = useState<string | null>(null);
 
   // Home is active by default.
   const [activeNav, setActiveNav] = useState<'home' | 'map'>('home');
@@ -61,7 +62,13 @@ export default function GameHUD({
   const handleMap = () => {
     setActiveNav('map');
     setMenuOpen(false);
+    setPanelTab(null);
     onMap?.();
+  };
+
+  const openPanel = (tab: string) => {
+    setMenuOpen(false);
+    setPanelTab(tab);
   };
 
   const toggleClean = () => {
@@ -162,7 +169,13 @@ export default function GameHUD({
 
       {/* Player avatar and needs */}
       {!clean && showNeeds && (
-        <PlayerStatusBar needsOnly />
+        <PlayerStatusBar needsOnly openTab={panelTab} onOpenTab={openPanel} onClosePanel={() => setPanelTab(null)} onNavigate={(page) => {
+          if (page === 'map') handleMap();
+          else if (page === 'home') handleHome();
+          else if (page === 'jobs') onOpenJobs?.();
+          else if (page === 'phone') openPanel('Phone');
+          else if (page === 'buy') openPanel('Buy');
+        }} />
       )}
 
       {/* Burger button when the screen is clean */}
@@ -267,11 +280,11 @@ export default function GameHUD({
           Home
         </button>
 
-        {/* Buy - not implemented yet */}
+        {/* Buy */}
         <button
           type="button"
-          disabled
-          className="flex w-32 flex-col items-center rounded-full px-4 py-2 text-sm font-semibold text-slate-400"
+          onClick={() => openPanel('Buy')}
+          className="flex w-32 flex-col items-center rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
         >
           <ShoppingBag size={18} aria-hidden="true" />
           Buy
@@ -289,11 +302,11 @@ export default function GameHUD({
           Map
         </button>
 
-        {/* Phone - not implemented yet */}
+        {/* Phone */}
         <button
           type="button"
-          disabled
-          className="flex w-32 flex-col items-center rounded-full px-4 py-2 text-sm font-semibold text-slate-400"
+          onClick={() => openPanel('Phone')}
+          className="flex w-32 flex-col items-center rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
         >
           <Smartphone size={18} aria-hidden="true" />
           Phone

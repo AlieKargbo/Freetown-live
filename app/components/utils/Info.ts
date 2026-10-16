@@ -18,7 +18,9 @@ export type FurnitureType =
   | 'stage'
   | 'pitch'
   | 'crate'
-  | 'machine';
+  | 'machine'
+  | 'shower'
+  | 'toilet';
 
 // Positions are relative to the room's centre. The two visible walls are the back wall (z = -depth/2)
 // and the left wall (x = -width/2). rot = 0 faces +z (towards the camera side);

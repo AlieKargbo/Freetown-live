@@ -32,6 +32,10 @@ import InteriorScene from './utils/InteriorScene';
 import BuildingPopup from './utils/BuildingPopup';
 //import InteriorHud from './utils/InteriorHud';
 import { AUTH_STORAGE_KEY, game, useGame } from './utils/Store';
+import NeedSimulation from './utils/NeedSimulation';
+import NeedActivityStatus from './utils/NeedActivityStatus';
+import TravelTransition from './utils/TravelTransition';
+import { calculateMood } from '@/app/Game/needs';
 import { PLAYER_HOME_INFO } from './zoned/Interior/playerHomeInfo';
 
 import { useEffect, useLayoutEffect, useState } from 'react';
@@ -270,6 +274,9 @@ export default function WorldCanvas() {
     const popup = useGame((s) => s.popup);
     const money = useGame((s) => s.money);
     const authenticated = useGame((s) => s.authenticated);
+    const player = useGame((s) => s.player);
+    const playerHome = useGame((s) => s.playerHome);
+    const needs = useGame((s) => s.needs);
     const [authChecked, setAuthChecked] = useState(false);
     const [showWelcomeTour, setShowWelcomeTour] = useState(false);
 
@@ -302,10 +309,21 @@ export default function WorldCanvas() {
     }, [interior?.id]);
 
     const openHome = () => {
-        game.enter(PLAYER_HOME_INFO);
+        const home = playerHome ?? PLAYER_HOME_INFO;
+        const { currentLocation, interior } = game.get();
+
+        if (currentLocation && currentLocation.id !== home.id) {
+            game.openPopup(home);
+            return;
+        }
+
+        if (interior?.id !== home.id) {
+            game.enter(home);
+        }
     };
     return (
         <div className="relative h-screen w-full overflow-hidden bg-cyan-400">
+            <NeedSimulation active={authChecked && (authenticated || Boolean(player))} />
             <Canvas
                 dpr={[1, 1.5]}
                 camera={{
@@ -453,6 +471,8 @@ export default function WorldCanvas() {
 
             {/* Building information popup */}
             <BuildingPopup />
+            <NeedActivityStatus />
+            <TravelTransition />
 
             {/* City-map HUD: signup, login, status bar and home entry */}
             {authChecked && (
@@ -461,7 +481,7 @@ export default function WorldCanvas() {
                     onHome={openHome}
                     onMap={() => game.exit()}
                     money={money}
-                    mood="Happy"
+                    mood={calculateMood(needs)}
                     gemCount={9166}
                     nextGemPrize={3000}
                     chips={[

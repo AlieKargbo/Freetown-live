@@ -10,19 +10,19 @@ import {
 } from '@/app/components/zoned/BuildingImports';
 
 export const zone: ZoneConfig = {
-    id: 'mainland',
+    id: 'Godrich',
     c: [60, 20], // centre [x, z]
     size: [40, 20], // [width, depth]
     color: '#b9d49c',
     label: { text: 'Godrich', size: 0.7 },
 };
 
-const leicesterZone: ZoneConfig = {
-    id: 'leicester-peak',
+const godrich2Zone: ZoneConfig = {
+    id: 'Godrich 2',
     c: [85, -10],
     size: [50, 40],
     color: '#b9d49c',
-    label: { text: 'LeicesterPeak', size: 0.7 },
+    label: { text: 'Godrich 2', size: 0.7 },
 };
 
 const BEACH_DEPTH = 2;
@@ -30,7 +30,7 @@ const ROAD_DEPTH = 1.2;
 
 // One rectangular plot of land. Its top face sits at y = 0.
 // Camera looks north, so the "back" is the smaller-z edge and the "front" is the larger-z edge.
-export default function Mainland() {
+export default function Godrich() {
     const [cx, cz] = zone.c;
     const [width, depth] = zone.size;
 
@@ -39,12 +39,12 @@ export default function Mainland() {
     const roadZ = cz;
     const labelZ = (backEdge + (roadZ - ROAD_DEPTH / 2)) / 2; // midway between the back edge and the road
 
-    const [leicesterX, leicesterZ] = leicesterZone.c;
-    const [leicesterWidth, leicesterDepth] = leicesterZone.size;
-    const leicesterBackEdge = leicesterZ - leicesterDepth / 2;
-    const leicesterRoadZ = leicesterZ;
-    const leicesterLabelZ =
-        (leicesterBackEdge + (leicesterRoadZ - ROAD_DEPTH / 2)) / 2;
+    const [godrich2X, godrich2Z] = godrich2Zone.c;
+    const [godrich2Width, godrich2Depth] = godrich2Zone.size;
+    const godrich2BackEdge = godrich2Z - godrich2Depth / 2;
+    const godrich2RoadZ = godrich2Z;
+    const godrich2LabelZ =
+        (godrich2BackEdge + (godrich2RoadZ - ROAD_DEPTH / 2)) / 2;
 
     return (
         <group>
@@ -60,14 +60,14 @@ export default function Mainland() {
                 <meshStandardMaterial color="#6b7280" />
             </mesh>
 
-            {/* Leicester Peak landmass */}
-            <mesh position={[leicesterX, -0.25, leicesterZ]} receiveShadow>
-                <boxGeometry args={[leicesterWidth, 0.5, leicesterDepth]} />
-                <meshStandardMaterial color={leicesterZone.color} />
+            {/*Godrich landmass */}
+            <mesh position={[godrich2X, -0.25, godrich2Z]} receiveShadow>
+                <boxGeometry args={[godrich2Width, 0.5, godrich2Depth]} />
+                <meshStandardMaterial color={godrich2Zone.color} />
             </mesh>
 
-            <mesh position={[leicesterX, 0.03, leicesterRoadZ]} receiveShadow>
-                <boxGeometry args={[leicesterWidth, 0.06, ROAD_DEPTH]} />
+            <mesh position={[godrich2X, 0.03, godrich2RoadZ]} receiveShadow>
+                <boxGeometry args={[godrich2Width, 0.06, ROAD_DEPTH]} />
                 <meshStandardMaterial color="#6b7280" />
             </mesh>
 
@@ -98,18 +98,18 @@ export default function Mainland() {
                 </Text>
             )}
 
-            {leicesterZone.label && (
+            {godrich2Zone.label && (
                 <Text
-                    position={[leicesterX, 0.08, leicesterLabelZ]}
+                    position={[godrich2X, 0.08, godrich2LabelZ]}
                     rotation={[-Math.PI / 2, 0, 0]}
-                    fontSize={leicesterZone.label.size ?? 0.55}
+                    fontSize={godrich2Zone.label.size ?? 0.55}
                     letterSpacing={0.35}
                     color="#475569"
                     fillOpacity={0.6}
                     anchorX="center"
                     anchorY="middle"
                 >
-                    {leicesterZone.label.text}
+                    {godrich2Zone.label.text}
                 </Text>
             )}
         </group>

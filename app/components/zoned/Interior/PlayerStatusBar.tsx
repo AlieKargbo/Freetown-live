@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   RotateCcw,
@@ -11,58 +11,67 @@ import {
   Map,
   Smartphone,
 } from 'lucide-react';
-import { useGame } from '../../utils/Store';
+import { CURRENCY, game, useGame } from '../../utils/Store';
 import NeedsPanel, { NEED_INFO } from './NeedsPanel';
+import { calculateMood } from '@/app/Game/needs';
+import { BUY_ITEMS } from '@/app/Game/storeCatalog';
 
 type Props = {
   onRotateRoom?: () => void;
   onCleanScreen?: (clean: boolean) => void;
   onNavigate?: (page: string) => void;
   needsOnly?: boolean;
+  openTab?: string | null;
+  onOpenTab?: (tab: string) => void;
+  onClosePanel?: () => void;
 };
 
-const feelings = [
-  {
-    icon: '🏡',
-    title: 'Fine House',
-    description: 'Your place is looking good.',
-    points: '+12',
-  },
-  {
-    icon: '💡',
-    title: 'UP NEPA!',
-    description: 'Light don come! The whole street shouted.',
-    points: '+10',
-  },
-  {
-    icon: '🪇',
-    title: 'Soft Life',
-    description: 'Enjoy the good things in life.',
-    points: '+10',
-  },
-];
-
-const tabs = ['Profile', 'Needs', 'Goals', 'Skills', 'People', 'Career'];
+const tabs = ['Profile', 'Needs', 'Goals', 'Skills', 'People', 'Career', 'Buy', 'Phone'];
 
 export default function PlayerStatusBar({
   onRotateRoom,
   onCleanScreen,
   onNavigate,
   needsOnly = false,
+  openTab,
+  onOpenTab,
+  onClosePanel,
 }: Props) {
   const needs = useGame((state) => state.needs);
+  const player = useGame((state) => state.player);
+  const money = useGame((state) => state.money);
+  const purchases = useGame((state) => state.purchases);
+  const mood = calculateMood(needs);
+  const lowestNeed = NEED_INFO.reduce((lowest, item) => needs[item.key] < needs[lowest.key] ? item : lowest, NEED_INFO[0]);
+  const avatar = player?.body === 'Man' ? '🧑🏾' : '👩🏾';
+  const displayName = player?.name?.replace(/^@/, '') || 'Your Sim';
+  const feelings = [{
+    icon: lowestNeed.emoji,
+    title: `${lowestNeed.label} needs attention`,
+    description: `Current level: ${Math.round(needs[lowestNeed.key])}%`,
+    points: mood,
+  }];
   const [clean, setClean] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [needsOpen, setNeedsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Profile');
+  const controlled = openTab !== undefined;
+  const modalOpen = controlled ? openTab !== null : needsOpen;
+  const selectedTab = controlled ? (openTab ?? 'Profile') : activeTab;
 
   const openNeeds = () => {
     setMenuOpen(false);
-    setActiveTab('Needs');
-    setNeedsOpen(true);
+    if (onOpenTab) onOpenTab('Needs');
+    else {
+      setActiveTab('Needs');
+      setNeedsOpen(true);
+    }
   };
 
-  const closeNeeds = () => setNeedsOpen(false);
+  const closeNeeds = useCallback(() => {
+    setNeedsOpen(false);
+    onClosePanel?.();
+  }, [onClosePanel]);
 
   const toggleClean = () => {
     const next = !clean;
@@ -76,7 +85,7 @@ export default function PlayerStatusBar({
 
   // Escape closes the modal or menu.
   useEffect(() => {
-    if (!needsOpen && !menuOpen) return;
+    if (!modalOpen && !menuOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -87,7 +96,7 @@ export default function PlayerStatusBar({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [needsOpen, menuOpen]);
+  }, [modalOpen, menuOpen, closeNeeds]);
 
   return (
     <>
@@ -305,7 +314,7 @@ export default function PlayerStatusBar({
 
       {/* Character status modal: fixed to viewport to escape HUD/canvas stacking */}
       <AnimatePresence>
-        {needsOpen && (
+        {modalOpen && (
           <motion.div
             key="character-status-backdrop"
             className="pointer-events-auto fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/45 p-3 backdrop-blur-sm sm:p-6"
@@ -337,10 +346,10 @@ export default function PlayerStatusBar({
 
                 <div className="min-w-0 flex-1">
                   <h2 className="text-xl font-extrabold text-slate-900">
-                    paaka
+                    {displayName}
                   </h2>
                   <p className="text-sm text-slate-500">
-                    Very Happy · Fine House
+                    {mood} · {lowestNeed.label} {needs[lowestNeed.key] <= 25 ? 'needs attention' : 'is your lowest need'}
                   </p>
                 </div>
 
@@ -360,9 +369,9 @@ export default function PlayerStatusBar({
                   <button
                     type="button"
                     key={tab}
-                    onClick={() => setActiveTab(tab)}
+                    onClick={() => onOpenTab ? onOpenTab(tab) : setActiveTab(tab)}
                     className={`shrink-0 rounded-full px-4 py-3 text-sm font-semibold transition ${
-                      activeTab === tab
+                      selectedTab === tab
                         ? 'bg-slate-900 text-white'
                         : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                     }`}
@@ -375,8 +384,13 @@ export default function PlayerStatusBar({
 
               {/* Scrollable panel */}
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-6 sm:px-7">
-                {activeTab === 'Needs' && (
+                {selectedTab === 'Needs' && (
                   <div className="space-y-5">
+                    <div className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                      <span className="mr-2">{avatar}</span>
+                      <strong>{mood}</strong>
+                      <span> · {lowestNeed.label} is currently lowest ({Math.round(needs[lowestNeed.key])}%).</span>
+                    </div>
                     <NeedsPanel needs={needs} />
 
                     <section className="pt-2">
@@ -407,7 +421,7 @@ export default function PlayerStatusBar({
                   </div>
                 )}
 
-                {activeTab === 'Profile' && (
+                {selectedTab === 'Profile' && (
                   <div className="space-y-4">
                     <div className="flex h-64 items-center justify-center rounded-[28px] bg-gradient-to-b from-blue-100 to-slate-100">
                       <div className="text-center">
@@ -419,7 +433,7 @@ export default function PlayerStatusBar({
                     </div>
 
                     <div className="rounded-2xl bg-slate-100 p-4">
-                      <p className="font-bold text-slate-800">@paaka</p>
+                      <p className="font-bold text-slate-800">{player?.name || 'Create a character'}</p>
                       <p className="mt-1 text-sm text-slate-500">
                         Your username
                       </p>
@@ -434,29 +448,90 @@ export default function PlayerStatusBar({
                     <label className="block text-sm font-semibold text-slate-600">
                       Display name
                       <input
-                        defaultValue="paaka"
+                        defaultValue={displayName === 'Your Sim' ? '' : displayName}
                         className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-emerald-400"
                       />
                     </label>
                   </div>
                 )}
 
-                {!['Profile', 'Needs'].includes(activeTab) && (
+                {selectedTab === 'Buy' && (
+                  <section className="space-y-4">
+                    <div className="flex items-center justify-between rounded-2xl bg-emerald-50 p-4">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-500">Available balance</p>
+                        <p className="text-xl font-extrabold text-slate-900">{CURRENCY} {money.toLocaleString('en-US')}</p>
+                      </div>
+                      <ShoppingBag className="text-emerald-600" />
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {BUY_ITEMS.map((item) => {
+                        const owned = purchases[item.id] ?? 0;
+                        const canAfford = money >= item.price;
+                        return (
+                          <article key={item.id} className="rounded-2xl border border-slate-200 p-4">
+                            <div className="flex items-start gap-3">
+                              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-slate-100 text-2xl">{item.emoji}</span>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-bold text-slate-800">{item.name}</p>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{item.category}</p>
+                              </div>
+                            </div>
+                            <p className="mt-3 min-h-10 text-sm text-slate-500">{item.description}</p>
+                            <div className="mt-3 flex items-center justify-between gap-2">
+                              <div>
+                                <p className="font-bold text-slate-800">{CURRENCY} {item.price.toLocaleString('en-US')}</p>
+                                {owned > 0 && <p className="text-xs text-emerald-700">Owned: {owned}</p>}
+                              </div>
+                              <button type="button" disabled={!canAfford} onClick={() => game.buyItem(item.id)} className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-slate-300">
+                                {canAfford ? 'Buy' : 'Need more'}
+                              </button>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-slate-400">Purchased items are tracked in your collection.</p>
+                  </section>
+                )}
+
+                {selectedTab === 'Phone' && (
+                  <section>
+                    <div className="mb-4 rounded-2xl bg-slate-900 p-4 text-white">
+                      <p className="text-sm text-slate-300">My wallet</p>
+                      <p className="mt-1 text-2xl font-extrabold">{CURRENCY} {money.toLocaleString('en-US')}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { tab: 'Profile', label: 'My Sim', emoji: '🧑🏾' },
+                        { tab: 'Needs', label: 'Needs', emoji: '💚' },
+                        { tab: 'Buy', label: 'Shop', emoji: '🛍️' },
+                        { tab: 'Map', label: 'City map', emoji: '🗺️' },
+                      ].map((app) => (
+                        <button key={app.tab} type="button" onClick={() => app.tab === 'Map' ? (closeNeeds(), onNavigate?.('map')) : onOpenTab ? onOpenTab(app.tab) : setActiveTab(app.tab)} className="flex min-h-28 flex-col items-center justify-center gap-2 rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-700 transition hover:bg-emerald-50">
+                          <span className="text-3xl">{app.emoji}</span>{app.label}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {!['Profile', 'Needs', 'Buy', 'Phone'].includes(selectedTab) && (
                   <div className="flex min-h-56 flex-col items-center justify-center rounded-3xl bg-slate-50 p-6 text-center">
                     <span className="text-4xl">
-                      {activeTab === 'Goals'
+                      {selectedTab === 'Goals'
                         ? '🎯'
-                        : activeTab === 'Skills'
+                        : selectedTab === 'Skills'
                           ? '📚'
-                          : activeTab === 'People'
+                          : selectedTab === 'People'
                             ? '🤝'
                             : '💼'}
                     </span>
                     <h3 className="mt-3 text-lg font-bold text-slate-800">
-                      {activeTab}
+                      {selectedTab}
                     </h3>
                     <p className="mt-2 max-w-sm text-sm text-slate-500">
-                      Your {activeTab.toLowerCase()} information will appear here.
+                      Your {selectedTab.toLowerCase()} information will appear here.
                     </p>
                   </div>
                 )}

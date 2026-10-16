@@ -36,6 +36,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
         const form = new FormData(event.currentTarget);
 
         if (isSignup) {
+            const username = String(form.get('username') ?? '').trim();
             const password = String(form.get('password') ?? '');
             const confirmPassword = String(form.get('confirmPassword') ?? '');
 
@@ -49,6 +50,9 @@ export default function AuthPage({ mode }: AuthPageProps) {
                 return;
             }
 
+            game.setPlayerUsername(
+                username.startsWith('@') ? username : `@${username}`,
+            );
             game.setAuthenticated(true);
             try {
                 localStorage.setItem(AUTH_STORAGE_KEY, 'true');

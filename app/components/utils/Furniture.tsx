@@ -1,7 +1,10 @@
 'use client';
 
 import type { ReactElement } from 'react';
+import { Html } from '@react-three/drei';
 import type { FurnitureSpec, FurnitureType } from './Info';
+import { ACTIVITY_CONTEXTS, type NeedActivityContext } from '@/app/Game/needActions';
+import { game } from './Store';
 
 type V3 = [number, number, number];
 type P = { color?: string; size?: [number, number] };
@@ -245,6 +248,29 @@ function Machine({ color = '#111827', size = [0.8, 1.4] }: P) {
   );
 }
 
+function Shower() {
+  return <>
+    <B p={[0, 1.1, 0]} s={[0.9, 2.2, 0.08]} c="#cbd5e1" />
+    <B p={[-0.45, 1.1, 0.45]} s={[0.08, 2.2, 0.9]} c="#cbd5e1" />
+    <B p={[0, 0.08, 0.45]} s={[0.9, 0.08, 0.9]} c="#64748b" />
+    <C p={[0, 2.05, 0.1]} r={0.06} h={0.12} c="#94a3b8" />
+  </>;
+}
+
+function Toilet() {
+  return <>
+    <B p={[0, 0.35, -0.15]} s={[0.42, 0.65, 0.3]} c="#f8fafc" />
+    <mesh position={[0, 0.3, 0.12]}>
+      <cylinderGeometry args={[0.28, 0.28, 0.16, 16]} />
+      <meshStandardMaterial color="#f8fafc" />
+    </mesh>
+    <mesh position={[0, 0.4, 0.12]}>
+      <torusGeometry args={[0.2, 0.04, 8, 20]} />
+      <meshStandardMaterial color="#cbd5e1" />
+    </mesh>
+  </>;
+}
+
 const PARTS: Record<FurnitureType, (p: P) => ReactElement> = {
   bed: Bed,
   sofa: Sofa,
@@ -264,13 +290,36 @@ const PARTS: Record<FurnitureType, (p: P) => ReactElement> = {
   pitch: Pitch,
   crate: Crate,
   machine: Machine,
+  shower: Shower,
+  toilet: Toilet,
 };
 
-export default function Furniture({ type, at, rot = 0, color, size }: FurnitureSpec) {
+const ACTIVITY_LABELS: Record<string, string> = {
+  bed: 'Sleep', sofa: 'Take a nap', table: 'Eat', counter: 'Have a snack',
+  shower: 'Take a shower', toilet: 'Use the toilet', tv: 'Play a game', stage: 'Dance',
+};
+
+export default function Furniture({ type, at, rot = 0, color, size, interactive = true }: FurnitureSpec & { interactive?: boolean }) {
   const Part = PARTS[type];
+  const action = ACTIVITY_CONTEXTS[type as NeedActivityContext];
   return (
     <group position={[at[0], 0, at[1]]} rotation={[0, rot, 0]}>
       <Part color={color} size={size} />
+      {interactive && action && (
+        <Html position={[0, 2.15, 0]} center distanceFactor={12} style={{ pointerEvents: 'auto' }}>
+          <button
+            type="button"
+            title={`${ACTIVITY_LABELS[type]} (${type})`}
+            onClick={(event) => {
+              event.stopPropagation();
+              game.startActivity(action, type as NeedActivityContext);
+            }}
+            className="whitespace-nowrap rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-slate-800 shadow-lg ring-1 ring-slate-200 transition hover:scale-105 hover:bg-emerald-50"
+          >
+            {ACTIVITY_LABELS[type]}
+          </button>
+        </Html>
+      )}
     </group>
   );
 }

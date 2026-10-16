@@ -7,6 +7,7 @@ export type NeedName =
   | "bladder";
 
 export type SimNeeds = Record<NeedName, number>;
+export const NEED_NAMES: NeedName[] = ["hunger", "energy", "fun", "social", "hygiene", "bladder"];
 
 export const INITIAL_NEEDS: SimNeeds = {
   hunger: 100,
@@ -27,7 +28,12 @@ export const NEED_DECAY_PER_MINUTE: SimNeeds = {
 };
 
 export function clampNeed(value: number): number {
+  if (!Number.isFinite(value)) return 0;
   return Math.max(0, Math.min(100, value));
+}
+
+export function sanitizeNeeds(needs: Partial<SimNeeds>): SimNeeds {
+  return Object.fromEntries(NEED_NAMES.map((need) => [need, clampNeed(needs[need] ?? 0)])) as SimNeeds;
 }
 
 export function changeNeed(
@@ -35,6 +41,7 @@ export function changeNeed(
   need: NeedName,
   amount: number,
 ): SimNeeds {
+  if (!Number.isFinite(amount)) return { ...needs };
   return {
     ...needs,
     [need]: clampNeed(needs[need] + amount),
@@ -69,4 +76,15 @@ export function advanceNeeds(
   }
 
   return next;
+}
+
+export type SimMood = "Miserable" | "Unhappy" | "Uncomfortable" | "Okay" | "Happy";
+
+export function calculateMood(needs: SimNeeds): SimMood {
+  const lowestNeed = Math.min(...Object.values(needs));
+  if (lowestNeed <= 10) return "Miserable";
+  if (lowestNeed <= 25) return "Unhappy";
+  if (lowestNeed <= 50) return "Uncomfortable";
+  if (lowestNeed <= 75) return "Okay";
+  return "Happy";
 }

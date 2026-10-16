@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import {
     FABRIC_COLORS,
     FABRICS,
@@ -20,6 +20,7 @@ type UpdateAppearance = <K extends keyof SimAppearance>(key: K, value: SimAppear
 
 type AsideProps = {
     appearance: SimAppearance;
+    signupUsername: string;
     step: number;
     update: UpdateAppearance;
     randomize: () => void;
@@ -72,6 +73,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 export default function Aside({
     appearance,
+    signupUsername,
     step,
     update,
     randomize,
@@ -87,18 +89,33 @@ export default function Aside({
     finish,
     canContinue,
 }: AsideProps) {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const mobileTop = isExpanded ? '12%' : 'calc(100% - 40px)';
 
     return (
-        <aside className="m-3 flex w-[min(40%,500px)] min-w-87.5 flex-col overflow-hidden rounded-[30px] bg-white/95 shadow-xl backdrop-blur-xl max-md:absolute max-md:inset-x-2 max-md:bottom-2 max-md:top-[51%] max-md:m-0 max-md:w-auto max-md:min-w-0">
-            <div className="flex-1 space-y-5 overflow-y-auto p-5 pb-4">
+        <aside
+            style={{ '--aside-top': mobileTop } as CSSProperties}
+            className="m-3 flex w-[min(38vw,500px)] min-w-80 flex-col overflow-hidden rounded-[30px] bg-white/95 shadow-xl backdrop-blur-xl max-lg:absolute max-lg:inset-x-2 max-lg:bottom-2 max-lg:top-[var(--aside-top)] max-lg:m-0 max-lg:w-auto max-lg:min-w-0 max-sm:rounded-[24px]"
+        >
+            <button
+                type="button"
+                aria-label={isExpanded ? 'Collapse character setup panel' : 'Expand character setup panel'}
+                aria-expanded={isExpanded}
+                onClick={() => setIsExpanded(expanded => !expanded)}
+                className="hidden h-10 shrink-0 items-center justify-center max-lg:flex"
+            >
+                <span className="h-1.5 w-12 rounded-full bg-slate-300" />
+            </button>
+            <div className={`${isExpanded ? '' : 'max-lg:hidden'} flex-1 space-y-5 overflow-y-auto overscroll-contain p-5 pb-4 max-sm:space-y-4 max-sm:p-4 max-sm:pb-3`}>
                 {step === 0 && <>
                     <div className="flex items-center rounded-full bg-slate-100 px-4 py-3">
                         <input
                             aria-label="Sim name"
                             value={appearance.name}
                             onChange={event => update('name', event.target.value.slice(0, 24))}
-                            placeholder="@paaka"
+                            placeholder={signupUsername || '@paaka'}
                             className="w-full bg-transparent font-extrabold outline-none"
+                            readOnly={!!signupUsername}
                         />
                         <span className="shrink-0 text-sm text-slate-400">your Sim's name</span>
                     </div>
@@ -154,53 +171,6 @@ export default function Aside({
                         </div>
                     </Section>
                 </>}
-
-                {/* {step === 1 && <>
-                    <p className="text-sm text-slate-500">Choose the details that make your Sim yours.</p>
-                    <Section title="Hairstyle">
-                        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                            {HAIR.map(value => (
-                                <button key={value} type="button" onClick={() => update('hairstyle', value)} className={`flex min-h-18.75 flex-col items-center justify-center gap-1 rounded-2xl border-2 p-2 text-xs font-semibold ${appearance.hairstyle === value ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-transparent bg-slate-100'}`}>
-                                    <span className="text-2xl">{HAIR_EMOJI[value]}</span>{value}
-                                </button>
-                            ))}
-                        </div>
-                    </Section>
-                    <Section title="Outfit">
-                        <div className="grid grid-cols-3 gap-2">
-                            {OUTFITS.map(value => (
-                                <button key={value} type="button" onClick={() => update('outfit', value)} className={`flex min-h-18.75 flex-col items-center justify-center gap-1 rounded-2xl border-2 p-2 text-xs font-semibold ${appearance.outfit === value ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-transparent bg-slate-100'}`}>
-                                    <span className="text-xl">{OUTFIT_EMOJI[value]}</span>{value}
-                                </button>
-                            ))}
-                        </div>
-                    </Section>
-                    <Section title="Fabric">
-                        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-                            {FABRICS.map(value => (
-                                <button key={value} type="button" onClick={() => update('fabric', value)} className={`flex min-w-0 flex-col gap-1 rounded-2xl border-2 p-1.5 text-[11px] font-semibold ${appearance.fabric === value ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-transparent bg-slate-100'}`}>
-                                    <span className="h-10 w-full rounded-xl" style={{ background: `repeating-linear-gradient(45deg, ${FABRIC_COLORS[value][0]} 0 8px, ${FABRIC_COLORS[value][1]} 8px 13px, ${FABRIC_COLORS[value][2]} 13px 17px)` }} />
-                                    {value}
-                                </button>
-                            ))}
-                        </div>
-                    </Section>
-                    <Section title="Skin tone">
-                        <div className="flex flex-wrap gap-3">
-                            {SKINS.map(value => (
-                                <button key={value} type="button" aria-label={`Skin tone ${value}`} aria-pressed={appearance.skin === value} onClick={() => update('skin', value)} className={`h-9 w-9 rounded-full border-2 ${appearance.skin === value ? 'border-blue-500 ring-2 ring-blue-200' : 'border-white shadow'}`} style={{ backgroundColor: value }} />
-                            ))}
-                        </div>
-                    </Section>
-                    <Section title="Hair color">
-                        <div className="flex flex-wrap gap-3">
-                            {HAIR_COLORS.map(value => (
-                                <button key={value} type="button" aria-label={`Hair color ${value}`} aria-pressed={appearance.hairColor === value} onClick={() => update('hairColor', value)} className={`h-8 w-8 rounded-full border-2 ${appearance.hairColor === value ? 'border-blue-500 ring-2 ring-blue-200' : 'border-white shadow'}`} style={{ backgroundColor: value }} />
-                            ))}
-                        </div>
-                    </Section>
-                </>} */}
-
 
                 {step === 1 && (
                     <section className="space-y-4">
@@ -285,25 +255,25 @@ export default function Aside({
 
                         {[
                             {
-                                name: 'Nepo Baby!',
+                                name: 'Money Man Pekin!',
                                 emoji: '👶🏿💰',
-                                tagline: 'Daddy knows people.',
+                                tagline: 'Papa na Big Man en Sabi people den.',
                                 benefits: [
                                     'Fully furnished Lekki flat — Daddy pays the rent',
                                     'Your own car (just buy fuel)',
                                     "Branch Manager at Daddy's friend's bank, from day one",
-                                    '₦500,000 pocket money',
+                                    'SLE500,000 pocket money',
                                 ],
                             },
                             {
-                                name: 'LAPO Baby!',
+                                name: 'Fighter!',
                                 emoji: '🏦',
                                 tagline: 'Self-made hits different.',
                                 benefits: [
-                                    '₦60,000 LAPO loan to start — repay ₦12,000 every week',
+                                    'SLE60,000 Fighter loan to start — repay ₦12,000 every week',
                                     'Hustle skill starts at 2',
                                     'You learn every skill 25% faster',
-                                    'Start in Mushin or Yaba and work your way to Lekki',
+                                    'Start in Malama or Congo Cross and work your way to HillStation',
                                 ],
                             },
                         ].map(outcome => {
@@ -382,7 +352,7 @@ export default function Aside({
                                         </div>
                                         <p className="mt-1 text-sm text-slate-500">{option.area} · {option.description}</p>
                                         <p className="mt-2 text-xs font-semibold text-slate-600">
-                                            Start ₦{option.startingMoney.toLocaleString('en-NG')} · Rent ₦{option.weeklyRent.toLocaleString('en-NG')} / week
+                                            Start SLE{option.startingMoney.toLocaleString('en-NG')} · Rent SLE{option.weeklyRent.toLocaleString('en-NG')} / week
                                         </p>
                                     </button>
                                 );
@@ -393,7 +363,7 @@ export default function Aside({
 
             </div>
 
-            <div className="flex gap-2 border-t border-slate-100 bg-white/90 p-4">
+            <div className={`${isExpanded ? '' : 'max-lg:hidden'} flex shrink-0 gap-2 border-t border-slate-100 bg-white/90 p-4 max-sm:p-3`}>
                 <button
                     type="button"
                     onClick={randomize}
@@ -417,20 +387,6 @@ export default function Aside({
                             : 'Continue'}
                 </button>
             </div>
-
-
-            {/* <button type="button" onClick={randomize} title="Randomize" aria-label="Randomize appearance" className="h-14 w-14 shrink-0 rounded-full bg-slate-100 text-xl">
-                    ⤨
-                </button>
-                {step < 2 ? (
-                    <button type="button" onClick={continueStep} className="flex-1 rounded-full bg-emerald-500 px-5 py-4 font-extrabold text-white shadow-lg shadow-emerald-200">
-                        Continue
-                    </button>
-                ) : (
-                    <button type="button" onClick={finish} className="flex-1 rounded-full bg-emerald-500 px-5 py-4 font-extrabold text-white shadow-lg shadow-emerald-200">
-                        Create Sim
-                    </button>
-                )} */}
 
         </aside>
     );

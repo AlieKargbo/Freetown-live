@@ -6,6 +6,7 @@ import CharacterCreator, {
 } from './CharacterCreator';
 import { game } from '../utils/Store';
 import { PLAYER_HOME_INFO } from '../zoned/Interior/playerHomeInfo';
+import { HOMES } from './CharacterData';
 
 export default function CharacterCreationPage() {
   const router = useRouter();
@@ -40,8 +41,16 @@ export default function CharacterCreationPage() {
       // Continue into the game if storage is unavailable.
     }
 
+    const homeChoice = HOMES.find((option) => option.name === choices.home);
+    const playerHome = {
+      ...PLAYER_HOME_INFO,
+      name: choices.home,
+      area: homeChoice?.area ?? PLAYER_HOME_INFO.area,
+    };
+
     game.setPlayer(choices.appearance);
-    game.enter(PLAYER_HOME_INFO);
+    game.setPlayerHome(playerHome);
+    game.enter(playerHome);
     console.log('Player customization after move-in:', customization);
 
     router.replace('/');

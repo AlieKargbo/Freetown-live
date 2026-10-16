@@ -1,8 +1,4 @@
-import {
-  changeNeed,
-  type NeedName,
-  type SimNeeds,
-} from "./needs";
+import type { NeedName, SimNeeds } from "./needs";
 
 export type NeedAction =
   | "eat"
@@ -16,14 +12,57 @@ export type NeedAction =
   | "play_game"
   | "dance";
 
+export type NeedActivity = {
+  action: NeedAction;
+  elapsedMinutes: number;
+  durationMinutes: number;
+};
+
+export type NeedActivityContext =
+  | "bed"
+  | "sofa"
+  | "table"
+  | "counter"
+  | "shower"
+  | "toilet"
+  | "tv"
+  | "stage"
+  | "person";
+
+export const ACTIVITY_CONTEXTS: Record<NeedActivityContext, NeedAction> = {
+  bed: "sleep",
+  sofa: "nap",
+  table: "eat",
+  counter: "snack",
+  shower: "shower",
+  toilet: "toilet",
+  tv: "play_game",
+  stage: "dance",
+  person: "chat",
+};
+
+export const ACTIVITY_DURATIONS_MINUTES: Record<NeedAction, number> = {
+  eat: 10,
+  snack: 5,
+  sleep: 480,
+  nap: 20,
+  shower: 15,
+  toilet: 5,
+  chat: 10,
+  call_friend: 8,
+  play_game: 30,
+  dance: 20,
+};
+
 const ACTION_EFFECTS: Record<
   NeedAction,
   Partial<Record<NeedName, number>>
 > = {
   eat:         { hunger: 65, fun: 5 },
   snack:       { hunger: 25 },
-  sleep:       { energy: 100 },
-  nap:         { energy: 30 },
+  // Sleep and naps restore energy gradually in advanceNeeds while the activity runs.
+  sleep:       {},
+  nap:         {},
   shower:      { hygiene: 85 },
   toilet:      { bladder: 100 },
   chat:        { social: 20, fun: 3 },

@@ -22,6 +22,7 @@ import {
     type SimAppearance,
 } from './CharacterData';
 import CustomizedSimModel from './CustomizedSimModel';
+import { useGame } from '../utils/Store';
 
 export type { SimAppearance } from './CharacterData';
 
@@ -46,8 +47,11 @@ export default function CharacterCreator({
 }: {
     onComplete?: (choices: PlayerChoices) => void;
 }) {
-    const [appearance, setAppearance] =
-        useState<SimAppearance>(INITIAL);
+    const signupUsername = useGame(state => state.playerUsername);
+    const [appearance, setAppearance] = useState<SimAppearance>(() => ({
+        ...INITIAL,
+        name: signupUsername || INITIAL.name,
+    }));
 
     const [step, setStep] = useState(0);
     const [traits, setTraits] = useState<string[]>([]);
@@ -143,7 +147,7 @@ export default function CharacterCreator({
         (step === 4 && Boolean(home));
 
     return (
-        <main className="relative flex h-dvh min-h-[600px] w-full overflow-hidden bg-[#eaf3ff] text-slate-900">
+        <main className="relative flex h-dvh min-h-0 w-full overflow-hidden bg-[#eaf3ff] text-slate-900">
             <button
                 type="button"
                 aria-label="Back"
@@ -248,6 +252,7 @@ export default function CharacterCreator({
 
             <Aside
                 appearance={appearance}
+                signupUsername={signupUsername}
                 step={step}
                 update={update}
                 randomize={randomize}
@@ -270,4 +275,3 @@ export default function CharacterCreator({
         </main>
     );
 }
-
