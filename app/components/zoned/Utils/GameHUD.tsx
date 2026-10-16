@@ -11,17 +11,24 @@ import {
   Smartphone,
   Settings,
   Volume2,
+  Home,
+  Map as MapIcon,
+  ShoppingBag,
 } from 'lucide-react';
+import PlayerStatusBar from '../Interior/PlayerStatusBar';
 
 type GameHUDProps = {
   onOpenJobs?: () => void;
   onOpenPhone?: () => void;
   onOpenSettings?: () => void;
+  onHome?: () => void;
+  onMap?: () => void;
   money?: number;
   mood?: string;
   gemCount?: number;
   nextGemPrize?: number;
   avatar?: string;
+  showNeeds?: boolean;
 };
 
 const moneyFormat = new Intl.NumberFormat('en-US');
@@ -30,14 +37,32 @@ export default function GameHUD({
   onOpenJobs,
   onOpenPhone,
   onOpenSettings,
+  onHome,
+  onMap,
   money = 1091000,
   mood = 'Happy',
   gemCount = 9166,
   nextGemPrize = 3000,
   avatar,
+  showNeeds = true,
 }: GameHUDProps) {
   const [clean, setClean] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Home is active by default.
+  const [activeNav, setActiveNav] = useState<'home' | 'map'>('home');
+
+  const handleHome = () => {
+    setActiveNav('home');
+    setMenuOpen(false);
+    onHome?.();
+  };
+
+  const handleMap = () => {
+    setActiveNav('map');
+    setMenuOpen(false);
+    onMap?.();
+  };
 
   const toggleClean = () => {
     if (!clean) {
@@ -73,7 +98,7 @@ export default function GameHUD({
             </button>
 
             <div className="rounded-full bg-slate-100 px-3 py-2 text-xs font-extrabold text-slate-800 sm:px-4 sm:text-sm">
-              ₦{moneyFormat.format(money)}
+              SLE {moneyFormat.format(money)}
             </div>
 
             <button
@@ -136,43 +161,8 @@ export default function GameHUD({
       )}
 
       {/* Player avatar and needs */}
-      {!clean && (
-        <div className="pointer-events-auto absolute bottom-[78px] left-3 flex items-center gap-2 sm:bottom-20 sm:left-5">
-          <button
-            onClick={onOpenPhone}
-            aria-label="Player profile"
-            className="flex h-[58px] w-[58px] shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] border-amber-400 bg-amber-100 text-3xl shadow-lg"
-          >
-            {avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={avatar}
-                alt="Player avatar"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              '🧑🏾'
-            )}
-          </button>
-
-          <div className="flex max-w-[235px] flex-wrap items-center gap-x-3 gap-y-2 rounded-full bg-white/95 px-3 py-2 shadow-lg backdrop-blur">
-            {[
-              ['🍲', 'w-8/12 bg-emerald-500'],
-              ['⚡', 'w-9/12 bg-emerald-500'],
-              ['🎉', 'w-7/12 bg-emerald-500'],
-              ['💬', 'w-8/12 bg-emerald-500'],
-              ['🧬', 'w-6/12 bg-emerald-500'],
-              ['🚿', 'w-9/12 bg-emerald-500'],
-            ].map(([icon, width], index) => (
-              <div key={index} className="flex items-center gap-1">
-                <span className="text-xs">{icon}</span>
-                <span className="h-2 w-9 overflow-hidden rounded-full bg-slate-200">
-                  <span className={`block h-full rounded-full ${width}`} />
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+      {!clean && showNeeds && (
+        <PlayerStatusBar needsOnly />
       )}
 
       {/* Burger button when the screen is clean */}
@@ -261,6 +251,54 @@ export default function GameHUD({
           </nav>
         </>
       )}
+
+      <nav className="pointer-events-auto absolute bottom-3 left-1/2 z-30 flex w-[min(560px,94%)] -translate-x-1/2 items-center justify-around rounded-full border border-white/70 bg-white/95 p-2 shadow-xl">
+        {/* Home */}
+        <button
+          type="button"
+          aria-current={activeNav === 'home' ? 'page' : undefined}
+          onClick={handleHome}
+          className={`flex w-32 flex-col items-center rounded-full px-4 py-2 text-sm font-bold transition-colors ${activeNav === 'home'
+              ? 'bg-slate-900 text-white'
+              : 'text-slate-700 hover:bg-slate-100'
+            }`}
+        >
+          <Home size={18} aria-hidden="true" />
+          Home
+        </button>
+
+        {/* Buy - not implemented yet */}
+        <button
+          type="button"
+          disabled
+          className="flex w-32 flex-col items-center rounded-full px-4 py-2 text-sm font-semibold text-slate-400"
+        >
+          <ShoppingBag size={18} aria-hidden="true" />
+          Buy
+        </button>
+
+        {/* Map */}
+        <button
+          type="button"
+          aria-current={activeNav === 'map' ? 'page' : undefined}
+          onClick={handleMap} className={`flex w-32 flex-col items-center rounded-full px-4 py-2 text-sm font-semibold transition-colors ${activeNav === 'map' ? 'bg-slate-900 text-white'
+            : 'text-slate-700 hover:bg-slate-100'
+            }`}
+        >
+          <MapIcon size={18} aria-hidden="true" />
+          Map
+        </button>
+
+        {/* Phone - not implemented yet */}
+        <button
+          type="button"
+          disabled
+          className="flex w-32 flex-col items-center rounded-full px-4 py-2 text-sm font-semibold text-slate-400"
+        >
+          <Smartphone size={18} aria-hidden="true" />
+          Phone
+        </button>
+      </nav>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import BuildingPin from '../../../utils/BuildingPins';
 //import type { BuildingInfo } from '../buildings/info';
 import { buildMountain } from './mountain';
 import { Inst, Trees, scatterPoints, type Item } from './Scatter';
+import type { BuildingInfo } from '../../../utils/Info';
 
 type V3 = [number, number, number];
 type Props = {
@@ -84,6 +85,26 @@ function Cloud({ base, phase }: { base: V3; phase: number }) {
     </group>
   );
 }
+
+export const SUGAR_LOAF_INFO: BuildingInfo = {
+  id: 'sugar-loaf',
+  name: 'Sugar Loaf Memorial',
+  area: 'Regent, Freetown, Sierra Leone',
+  emoji: '🏔️',
+  tagline: 'Remembering the lives lost on 14 August 2017',
+  activities: [
+    { emoji: '🕯️', label: 'Pay your respects' },
+    { emoji: '📖', label: 'Learn about the disaster' },
+    { emoji: '🌿', label: 'Explore landslide awareness' },
+  ],
+  interior: {
+    size: [14, 11],
+    floor: ['#69533e', '#78634f'],
+    wall: '#494943',
+    ground: '#7d8988',
+    furniture: [],
+  },
+};
 
 // Sugar Loaf: a steep forested dome with a bare granite top, a Sierra Leone flag on the summit,
 // boulders, a base camp with tents and a campfire, and clouds drifting past.
@@ -180,8 +201,9 @@ export default function SugarLoaf({ position, showPin = false }: Props) {
         <BuildingPin
           emoji="🏔️"
           label="Sugar Loaf"
-          nameOverride="Sugar Loaf"
+          nameOverride="Sugar Loaf Memorial"
           height={SUGAR_LOAF_HEIGHT}
+          info={SUGAR_LOAF_INFO}
         />
       )}
     </group>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
 import { Home, Map as MapIcon } from 'lucide-react';
 import * as THREE from 'three';
@@ -24,18 +24,17 @@ import {
     HillstationWorld as Hillstation,
     LeicesterpeakWorld as Leicesterpeak,
 } from '@/app/components/zoned/BuildingImports';
-//import Hud from './Hud';
+
 
 import { BuildingNameScope } from './utils/BuildingNameScope';
 import Hud from './Hud';
 import InteriorScene from './utils/InteriorScene';
 import BuildingPopup from './utils/BuildingPopup';
-import InteriorHud from './utils/InteriorHud';
-import GameHUD from './zoned/Utils/GameHUD';
-import { game, useGame } from './utils/Store';
+//import InteriorHud from './utils/InteriorHud';
+import { AUTH_STORAGE_KEY, game, useGame } from './utils/Store';
 import { PLAYER_HOME_INFO } from './zoned/Interior/playerHomeInfo';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import WelcomeTour from './zoned/Interior/WelcomeTour';
 
 // View from the screenshot: looking north from the south, tilted ~49° from straight down.
@@ -59,6 +58,27 @@ const HOUSE_TARGET: [number, number, number] = [0, 1, 0];
 // Polar angle corresponding to y=37.5 and delta_z=26.25 (~35° tilt from vertical / top-down)
 const TILT = Math.atan2(CAMERA_POSITION[2] - TARGET[2], CAMERA_POSITION[1] - TARGET[1]);
 const ROAD_WIDTH = 1.2;
+
+function SceneCamera({ interior }: { interior: { id: string } | null }) {
+    const camera = useThree((state) => state.camera);
+
+    useLayoutEffect(() => {
+        if (interior) {
+            camera.position.set(0, 14, 18);
+            camera.lookAt(0, 0.6, 0);
+        } else {
+            camera.position.set(...CAMERA_POSITION);
+            camera.lookAt(...TARGET);
+        }
+
+        if (camera instanceof THREE.PerspectiveCamera) {
+            camera.fov = interior ? 42 : 38;
+            camera.updateProjectionMatrix();
+        }
+    }, [camera, interior?.id]);
+
+    return null;
+}
 
 // Shape every zone file exports as `zone` (Mainland.tsx imports this with `import type`).
 export type ZoneConfig = {
@@ -249,7 +269,18 @@ export default function WorldCanvas() {
     const interior = useGame((s) => s.interior);
     const popup = useGame((s) => s.popup);
     const money = useGame((s) => s.money);
+    const authenticated = useGame((s) => s.authenticated);
+    const [authChecked, setAuthChecked] = useState(false);
     const [showWelcomeTour, setShowWelcomeTour] = useState(false);
+
+    useEffect(() => {
+        try {
+            game.setAuthenticated(localStorage.getItem(AUTH_STORAGE_KEY) === 'true');
+        } catch {
+            game.setAuthenticated(false);
+        }
+        setAuthChecked(true);
+    }, []);
 
     useEffect(() => {
         if (interior?.id !== 'player-home') {
@@ -271,29 +302,20 @@ export default function WorldCanvas() {
     }, [interior?.id]);
 
     const openHome = () => {
-        game.closePopup();
-        game.enter(PLAYER_HOME_INFO, 0);
+        game.enter(PLAYER_HOME_INFO);
     };
     return (
         <div className="relative h-screen w-full overflow-hidden bg-cyan-400">
             <Canvas
-                key={interior ? `interior-${interior.id}` : 'world-map'}
+                dpr={[1, 1.5]}
                 camera={{
-                    position: interior
-                        ? [0, 14, 18]
-                        : CAMERA_POSITION,
-                    fov: interior ? 42 : 38,
+                    position: CAMERA_POSITION,
+                    fov: 38,
                     near: 0.1,
                     far: 700,
                 }}
-                onCreated={({ camera }) => {
-                    if (interior) {
-                        camera.lookAt(0, 0.6, 0);
-                    } else {
-                        camera.lookAt(...TARGET);
-                    }
-                }}
             >
+                <SceneCamera interior={interior} />
                 {interior ? (
                     <>
                         {/* Interior lighting and background */}
@@ -433,8 +455,15 @@ export default function WorldCanvas() {
             <BuildingPopup />
 
             {/* City-map HUD: signup, login, status bar and home entry */}
-            {!interior && (
+            {authChecked && (
                 <Hud
+                    authenticated={authenticated || Boolean(interior)}
+                    onHome={openHome}
+                    onMap={() => game.exit()}
+                    money={money}
+                    mood="Happy"
+                    gemCount={9166}
+                    nextGemPrize={3000}
                     chips={[
                         {
                             icon: '🏠',
@@ -445,20 +474,6 @@ export default function WorldCanvas() {
                     headline="Explore Freetown, find a place to call home."
                 />
             )}
-
-            {/* Interior HUD */}
-            {interior && (
-                <>
-                    <GameHUD
-                        money={money}
-                        mood="Happy"
-                        gemCount={9166}
-                        nextGemPrize={3000}
-                    />
-                    <InteriorHud info={interior} />
-                </>
-            )}
-
 
             {/* Show the welcome tour only inside the player's home */}
             {interior?.id === 'player-home' && showWelcomeTour && (

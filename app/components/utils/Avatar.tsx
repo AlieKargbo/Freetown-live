@@ -1,9 +1,10 @@
 'use client';
 
-import { useRef } from 'react';
+import { Suspense, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
+import { Center, Html, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { SkeletonUtils } from 'three-stdlib';
 
 type Props = {
   name: string;
@@ -17,13 +18,25 @@ type Props = {
   target?: { current: [number, number] | null };
   say?: string | null;
   isYou?: boolean;
+  modelUrl?: string;
   seed?: number;
 };
 
 const SPEED = 0.8; // units per second
 
+function GLBAvatar({ url }: { url: string }) {
+  const { scene } = useGLTF(url);
+  const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
+
+  return (
+    <Center disableY>
+      <primitive object={clone} scale={0.85} />
+    </Center>
+  );
+}
+
 // Blocky low-poly person. Legs and arms swing while it walks.
-export default function Avatar({ name, shirt, skin, pants = '#1f2937', start, bounds, target, say, isYou = false, seed = 1 }: Props) {
+export default function Avatar({ name, shirt, skin, pants = '#1f2937', start, bounds, target, say, isYou = false, modelUrl, seed = 1 }: Props) {
   const group = useRef<THREE.Group>(null);
   const legL = useRef<THREE.Group>(null);
   const legR = useRef<THREE.Group>(null);
@@ -77,18 +90,12 @@ export default function Avatar({ name, shirt, skin, pants = '#1f2937', start, bo
 
   return (
     <group ref={group} position={[start[0], 0, start[1]]} scale={1.15}>
-      <group ref={legL} position={[-0.1, 0.5, 0]}>
-        <mesh position={[0, -0.25, 0]} castShadow>
-          <boxGeometry args={[0.14, 0.5, 0.15]} />
-          <meshStandardMaterial color={pants} />
-        </mesh>
-      </group>
-      <group ref={legR} position={[0.1, 0.5, 0]}>
-        <mesh position={[0, -0.25, 0]} castShadow>
-          <boxGeometry args={[0.14, 0.5, 0.15]} />
-          <meshStandardMaterial color={pants} />
-        </mesh>
-      </group>
+      {modelUrl ? (
+        <Suspense fallback={null}>
+          <GLBAvatar url={modelUrl} />
+        </Suspense>
+      ) : (
+        <>
 
       <mesh position={[0, 0.78, 0]} castShadow>
         <boxGeometry args={[0.44, 0.55, 0.26]} />
@@ -115,6 +122,8 @@ export default function Avatar({ name, shirt, skin, pants = '#1f2937', start, bo
         <sphereGeometry args={[0.18, 14, 10]} />
         <meshStandardMaterial color="#1c1917" />
       </mesh>
+        </>
+      )}
 
       <Html position={[0, 1.8, 0]} center zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <div className="flex flex-col items-center gap-1">

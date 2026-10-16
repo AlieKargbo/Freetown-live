@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { CURRENCY, useGame } from './utils/Store';
-
+import GameHUD from './zoned/Utils/GameHUD';
 type Chip = { icon: string; label: string; onClick?: () => void };
 
 type Props = {
@@ -12,6 +12,18 @@ type Props = {
   chips?: Chip[];
   signupHref?: string;
   loginHref?: string;
+  authenticated?: boolean;
+  onHome?: () => void;
+  onMap?: () => void;
+  onPhone?: () => void;
+  onOpenJobs?: () => void;
+  onOpenSettings?: () => void;
+  money?: number;
+  mood?: string;
+  gemCount?: number;
+  nextGemPrize?: number;
+  avatar?: string;
+  showNeeds?: boolean;
 };
 
 const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
@@ -56,8 +68,38 @@ export default function Hud({
   chips = DEFAULT_CHIPS,
   signupHref = '/signup',
   loginHref = '/login',
+  authenticated = false,
+  onHome,
+  onMap,
+  onPhone,
+  onOpenJobs,
+  onOpenSettings,
+  money,
+  mood,
+  gemCount,
+  nextGemPrize,
+  avatar,
+  showNeeds,
 }: Props) {
-  const money = useGame((state) => state.money);
+  const storedMoney = useGame((state) => state.money);
+
+  if (authenticated) {
+    return (
+      <GameHUD
+        onHome={onHome}
+        onMap={onMap}
+        onOpenPhone={onPhone}
+        onOpenJobs={onOpenJobs}
+        onOpenSettings={onOpenSettings}
+        money={money ?? storedMoney}
+        mood={mood}
+        gemCount={gemCount}
+        nextGemPrize={nextGemPrize}
+        avatar={avatar}
+        showNeeds={showNeeds}
+      />
+    );
+  }
 
   return (
     // The overlay itself ignores the pointer so the map can still be dragged; only the cards catch it.
@@ -78,7 +120,7 @@ export default function Hud({
           </div>
           <div className="flex shrink-0 items-center gap-1">
             <span className="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700" aria-label="Wallet balance">
-              {CURRENCY}{compact.format(money)}
+              {CURRENCY}{compact.format(storedMoney)}
             </span>
             <a href={signupHref} className="rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-emerald-600">
               Sign up

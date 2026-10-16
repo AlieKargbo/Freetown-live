@@ -1,13 +1,15 @@
-import { useSyncExternalStore } from 'react';
+import { create } from 'zustand';
 import type { BuildingInfo } from './Info';
-import type { SimAppearance } from '../Character/CharacterCreator';
+import type { SimAppearance } from '../Game-setup/CharacterCreator';
 
-// Change this one constant to switch the currency symbol everywhere (₦, Le, ...).
-export const CURRENCY = '₦';
+// Shared currency prefix for Sierra Leonean leones.
+export const CURRENCY = 'SLE';
+export const AUTH_STORAGE_KEY = 'lagos-life-authenticated';
 
 type Chat = { text: string; t: number };
 
 type State = {
+  authenticated: boolean;
   money: number;
   player: SimAppearance | null;
   popup: BuildingInfo | null; // building whose "enter" popup is open
@@ -15,45 +17,63 @@ type State = {
   chat: Chat | null; // last thing the player said (shown as a bubble for a few seconds)
 };
 
-let state: State = { money: 1_091_000, player: null, popup: null, interior: null, chat: null };
-
-const listeners = new Set<() => void>();
-const subscribe = (l: () => void) => {
-  listeners.add(l);
-  return () => {
-    listeners.delete(l);
-  };
-};
-const set = (patch: Partial<State>) => {
-  state = { ...state, ...patch };
-  listeners.forEach((l) => l());
+type Actions = {
+  setAuthenticated: (authenticated: boolean) => void;
+  setPlayer: (player: SimAppearance) => void;
+  openPopup: (info: BuildingInfo) => void;
+  closePopup: () => void;
+  enter: (info: BuildingInfo, cost?: number) => void;
+  exit: () => void;
+  say: (text: string) => void;
 };
 
-// A module-level store, so building pins (inside the R3F canvas) and the HTML popups
-// (outside it) share state without any context bridging.
-export const game = {
-  get: () => state,
-  setPlayer: (player: SimAppearance) => set({ player }),
-  openPopup: (info: BuildingInfo) => set({ popup: info }),
+type GameStore = State & Actions;
+
+const useGameStore = create<GameStore>()((set, get) => ({
+  authenticated: false,
+  money: 1_091_000,
+  player: null,
+  popup: null,
+  interior: null,
+  chat: null,
+  setAuthenticated: (authenticated) => set({ authenticated }),
+  setPlayer: (player) => set({ player }),
+  openPopup: (info) => set({ popup: info }),
   closePopup: () => set({ popup: null }),
-  enter: (info: BuildingInfo, cost = 0) => set({ interior: info, popup: null, money: state.money - cost, chat: null }),
+  enter: (info, cost = 0) => set((state) => ({
+    interior: info,
+    popup: null,
+    money: state.money - cost,
+    chat: null,
+  })),
   exit: () => set({ interior: null, chat: null }),
-  say: (text: string) => {
+  say: (text) => {
     const t = Date.now();
     set({ chat: { text, t } });
     setTimeout(() => {
-      if (state.chat?.t === t) set({ chat: null });
+      if (get().chat?.t === t) set({ chat: null });
     }, 5000);
   },
-};
+}));
 
-export function useGame<T>(select: (s: State) => T): T {
-  return useSyncExternalStore(
-    subscribe,
-    () => select(state),
-    () => select(state),
-  );
+export function useGame<T>(select: (state: State) => T): T {
+  return useGameStore(select);
 }
+
+// Keep an imperative facade for events originating outside React components.
+export const game = {
+  get: (): State => {
+    const { authenticated, money, player, popup, interior, chat } = useGameStore.getState();
+    return { authenticated, money, player, popup, interior, chat };
+  },
+  setAuthenticated: (authenticated: boolean) => useGameStore.getState().setAuthenticated(authenticated),
+  setPlayer: (player: SimAppearance) => useGameStore.getState().setPlayer(player),
+  openPopup: (info: BuildingInfo) => useGameStore.getState().openPopup(info),
+  closePopup: () => useGameStore.getState().closePopup(),
+  enter: (info: BuildingInfo, cost = 0) => useGameStore.getState().enter(info, cost),
+  exit: () => useGameStore.getState().exit(),
+  say: (text: string) => useGameStore.getState().say(text),
+};
 
 export function hash(str: string) {
   let h = 2166136261;

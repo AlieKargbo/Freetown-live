@@ -10,6 +10,7 @@ import type { BuildingInfo } from './Info';
 import { hash, playersIn, useGame } from './Store';
 import PlayerHomeDetails from '../zoned/Interior/PlayerHomeDetails';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import SugarLoafMemorialScene from './SugarLoafMemorialScene';
 
 // const controlsRef = useRef<OrbitControlsImpl>(null)
 
@@ -142,10 +143,13 @@ export default function InteriorScene({ info }: { info: BuildingInfo }) {
     const { size, floor, wall, ground, furniture } = info.interior;
     const [w, d] = size;
     const chat = useGame((s) => s.chat);
+    const player = useGame((s) => s.player);
     const target = useRef<[number, number] | null>(null);
     const floorTex = useMemo(() => makeChecker(floor[0], floor[1], w, d), [floor, w, d]);
 
     const npcs = useMemo(() => {
+        if (info.id === 'player-home') return [];
+
         const n = playersIn(info.id) - 1; // you are one of the players
         const base = hash(info.id);
         const r = rng(base);
@@ -160,7 +164,15 @@ export default function InteriorScene({ info }: { info: BuildingInfo }) {
 
     const bounds: [number, number] = [w / 2 - 0.7, d / 2 - 0.7];
     const doorX = -w / 2 + 1.3;
+    const playerStart: [number, number] = info.id === 'player-home'
+        ? [0, 0]
+        : [doorX, -d / 2 + 1.1];
     const distance = 12 + Math.max(w, d) * 0.85;
+
+    // Sugar Loaf uses a dedicated landslide memorial scene.
+    if (info.id === 'sugar-loaf') {
+        return <SugarLoafMemorialScene />;
+    }
 
     return (
         <>
@@ -229,7 +241,17 @@ export default function InteriorScene({ info }: { info: BuildingInfo }) {
             {npcs.map((n) => (
                 <Avatar key={n.name} name={n.name} shirt={n.shirt} skin={n.skin} start={n.start} bounds={bounds} seed={n.seed} />
             ))}
-            <Avatar name="you" shirt="#f59e0b" skin="#8d5524" start={[doorX, -d / 2 + 1.1]} bounds={bounds} target={target} say={chat?.text ?? null} isYou />
+            <Avatar
+                name="you"
+                shirt="#f59e0b"
+                skin="#8d5524"
+                start={playerStart}
+                bounds={bounds}
+                target={target}
+                say={chat?.text ?? null}
+                isYou
+                modelUrl={info.id === 'player-home' ? (player?.body === 'Man' ? '/models/sim-man.glb' : '/models/sim-woman.glb') : undefined}
+            />
 
             <OrbitControls
                 // ref={controlsRef}

@@ -7,11 +7,13 @@ import type { BuildingInfo } from './Info';
 type Ride = { id: string; emoji: string; label: string; cost: number };
 
 const RIDES: Ride[] = [
-  { id: 'trek', emoji: '🚶🏾', label: 'Trek', cost: 0 },
-  { id: 'keke', emoji: '🛺', label: 'Keke', cost: 100 },
-  { id: 'danfo', emoji: '🚌', label: 'Danfo', cost: 100 },
+  { id: 'Waka', emoji: '🚶🏾', label: 'Trek', cost: 0 },
   { id: 'okada', emoji: '🏍️', label: 'Okada', cost: 200 },
-  { id: 'cab', emoji: '🚕', label: 'Cab', cost: 500 },
+  { id: 'keke', emoji: '🛺', label: 'Keke', cost: 100 },
+    { id: 'Taxi', emoji: '🚕', label: 'Cab', cost: 500 },
+  { id: 'Poda Poda', emoji: '🚌', label: 'Danfo', cost: 100 },
+  
+
 ];
 
 const isRushHour = () => {
