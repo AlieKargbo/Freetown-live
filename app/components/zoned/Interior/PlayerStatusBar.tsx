@@ -11,6 +11,8 @@ import {
   Map,
   Smartphone,
 } from 'lucide-react';
+import { useGame } from '../../utils/Store';
+import NeedsPanel, { NEED_INFO } from './NeedsPanel';
 
 type Props = {
   onRotateRoom?: () => void;
@@ -18,22 +20,6 @@ type Props = {
   onNavigate?: (page: string) => void;
   needsOnly?: boolean;
 };
-
-type Need = {
-  icon: string;
-  name: string;
-  value: number;
-  color: string;
-};
-
-const needs: Need[] = [
-  { icon: '🍲', name: 'Hunger', value: 96, color: 'bg-orange-400' },
-  { icon: '⚡', name: 'Energy', value: 77, color: 'bg-blue-500' },
-  { icon: '🎉', name: 'Fun', value: 92, color: 'bg-yellow-400' },
-  { icon: '💬', name: 'Social', value: 100, color: 'bg-pink-500' },
-  { icon: '🫧', name: 'Hygiene', value: 69, color: 'bg-teal-500' },
-  { icon: '🚽', name: 'Bladder', value: 67, color: 'bg-violet-500' },
-];
 
 const feelings = [
   {
@@ -64,6 +50,7 @@ export default function PlayerStatusBar({
   onNavigate,
   needsOnly = false,
 }: Props) {
+  const needs = useGame((state) => state.needs);
   const [clean, setClean] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [needsOpen, setNeedsOpen] = useState(false);
@@ -171,13 +158,16 @@ export default function PlayerStatusBar({
             </span>
 
             <span className="grid grid-cols-3 gap-x-3 gap-y-2 pr-3">
-              {needs.map((need) => (
-                <span key={need.name} className="flex items-center gap-1">
-                  <span className="text-sm">{need.icon}</span>
+              {NEED_INFO.map((need) => (
+                <span key={need.key} className="flex items-center gap-1">
+                  <span className="text-sm">{need.emoji}</span>
                   <span className="h-2 w-10 overflow-hidden rounded-full bg-slate-200">
                     <span
-                      className="block h-full rounded-full bg-emerald-500"
-                      style={{ width: `${need.value}%` }}
+                      className="block h-full rounded-full"
+                      style={{
+                        width: `${Math.round(needs[need.key])}%`,
+                        backgroundColor: need.color,
+                      }}
                     />
                   </span>
                 </span>
@@ -387,35 +377,7 @@ export default function PlayerStatusBar({
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-6 sm:px-7">
                 {activeTab === 'Needs' && (
                   <div className="space-y-5">
-                    {needs.map((need) => (
-                      <div key={need.name}>
-                        <div className="mb-2 flex items-center gap-3">
-                          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-slate-100 text-xl">
-                            {need.icon}
-                          </span>
-                          <span className="flex-1 font-semibold text-slate-800">
-                            {need.name}
-                          </span>
-                          <span className="text-sm font-semibold text-slate-500">
-                            {need.value}%
-                          </span>
-                        </div>
-
-                        <div
-                          role="progressbar"
-                          aria-label={need.name}
-                          aria-valuenow={need.value}
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                          className="ml-14 h-2.5 overflow-hidden rounded-full bg-slate-100"
-                        >
-                          <div
-                            className={`h-full rounded-full ${need.color}`}
-                            style={{ width: `${need.value}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
+                    <NeedsPanel needs={needs} />
 
                     <section className="pt-2">
                       <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-500">

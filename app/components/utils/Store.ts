@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { BuildingInfo } from './Info';
 import type { SimAppearance } from '../Game-setup/CharacterCreator';
+import { INITIAL_NEEDS, type SimNeeds } from '@/app/Game/needs';
 
 // Shared currency prefix for Sierra Leonean leones.
 export const CURRENCY = 'SLE';
@@ -10,6 +11,7 @@ type Chat = { text: string; t: number };
 
 type State = {
   authenticated: boolean;
+  needs: SimNeeds;
   money: number;
   player: SimAppearance | null;
   popup: BuildingInfo | null; // building whose "enter" popup is open
@@ -19,6 +21,7 @@ type State = {
 
 type Actions = {
   setAuthenticated: (authenticated: boolean) => void;
+  setNeeds: (needs: SimNeeds) => void;
   setPlayer: (player: SimAppearance) => void;
   openPopup: (info: BuildingInfo) => void;
   closePopup: () => void;
@@ -31,12 +34,14 @@ type GameStore = State & Actions;
 
 const useGameStore = create<GameStore>()((set, get) => ({
   authenticated: false,
+  needs: INITIAL_NEEDS,
   money: 1_091_000,
   player: null,
   popup: null,
   interior: null,
   chat: null,
   setAuthenticated: (authenticated) => set({ authenticated }),
+  setNeeds: (needs) => set({ needs }),
   setPlayer: (player) => set({ player }),
   openPopup: (info) => set({ popup: info }),
   closePopup: () => set({ popup: null }),
@@ -63,10 +68,11 @@ export function useGame<T>(select: (state: State) => T): T {
 // Keep an imperative facade for events originating outside React components.
 export const game = {
   get: (): State => {
-    const { authenticated, money, player, popup, interior, chat } = useGameStore.getState();
-    return { authenticated, money, player, popup, interior, chat };
+    const { authenticated, needs, money, player, popup, interior, chat } = useGameStore.getState();
+    return { authenticated, needs, money, player, popup, interior, chat };
   },
   setAuthenticated: (authenticated: boolean) => useGameStore.getState().setAuthenticated(authenticated),
+  setNeeds: (needs: SimNeeds) => useGameStore.getState().setNeeds(needs),
   setPlayer: (player: SimAppearance) => useGameStore.getState().setPlayer(player),
   openPopup: (info: BuildingInfo) => useGameStore.getState().openPopup(info),
   closePopup: () => useGameStore.getState().closePopup(),
