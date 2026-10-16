@@ -112,14 +112,14 @@ export default function AuthPage({ mode }: AuthPageProps) {
                     </div>
 
                     <h1 className="flex items-center justify-center gap-2 text-4xl font-black tracking-tight text-[#182033] sm:text-5xl">
-                        Lagos Life
+                        Freetong Life
                         <span className="relative top-1 inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-[#182033] px-1.5 text-[11px] font-extrabold text-white sm:h-9 sm:min-w-9">
                             18+
                         </span>
                     </h1>
 
                     <p className="mt-2 text-base text-[#63738e] sm:text-lg">
-                        Live your Lagos story with real people.
+                        Live your Freetong story with real people.
                     </p>
                 </header>
 
@@ -184,7 +184,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
                                         id="name"
                                         name="name"
                                         autoComplete="name"
-                                        placeholder="e.g. Tolu Adebayo"
+                                        placeholder="e.g. Aki Kamara"
                                         required
                                         maxLength={80}
                                         className={inputClass}
@@ -208,7 +208,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
                                     />
 
                                     <p className="mt-2 text-sm leading-5 text-[#63738e]">
-                                        This is your Sim&apos;s name in Lagos Life.
+                                        This is your Sim&apos;s name in Freetong Life.
                                     </p>
                                 </div>
                             </>

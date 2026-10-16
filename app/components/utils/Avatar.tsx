@@ -1,10 +1,11 @@
 'use client';
 
-import { Suspense, useMemo, useRef } from 'react';
+import { Suspense, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Center, Html, useGLTF } from '@react-three/drei';
+import { Center, Html } from '@react-three/drei';
 import * as THREE from 'three';
-import { SkeletonUtils } from 'three-stdlib';
+import CustomizedSimModel from '../Game-setup/CustomizedSimModel';
+import type { SimAppearance } from '../Game-setup/CharacterData';
 
 type Props = {
   name: string;
@@ -18,25 +19,22 @@ type Props = {
   target?: { current: [number, number] | null };
   say?: string | null;
   isYou?: boolean;
-  modelUrl?: string;
+  appearance?: SimAppearance;
   seed?: number;
 };
 
 const SPEED = 0.8; // units per second
 
-function GLBAvatar({ url }: { url: string }) {
-  const { scene } = useGLTF(url);
-  const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
-
+function GLBAvatar({ appearance }: { appearance: SimAppearance }) {
   return (
     <Center disableY>
-      <primitive object={clone} scale={0.85} />
+      <CustomizedSimModel appearance={appearance} scale={0.85} />
     </Center>
   );
 }
 
 // Blocky low-poly person. Legs and arms swing while it walks.
-export default function Avatar({ name, shirt, skin, pants = '#1f2937', start, bounds, target, say, isYou = false, modelUrl, seed = 1 }: Props) {
+export default function Avatar({ name, shirt, skin, pants = '#1f2937', start, bounds, target, say, isYou = false, appearance, seed = 1 }: Props) {
   const group = useRef<THREE.Group>(null);
   const legL = useRef<THREE.Group>(null);
   const legR = useRef<THREE.Group>(null);
@@ -90,9 +88,9 @@ export default function Avatar({ name, shirt, skin, pants = '#1f2937', start, bo
 
   return (
     <group ref={group} position={[start[0], 0, start[1]]} scale={1.15}>
-      {modelUrl ? (
+      {appearance ? (
         <Suspense fallback={null}>
-          <GLBAvatar url={modelUrl} />
+          <GLBAvatar appearance={appearance} />
         </Suspense>
       ) : (
         <>

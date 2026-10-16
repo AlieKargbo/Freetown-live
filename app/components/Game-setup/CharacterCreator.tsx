@@ -6,20 +6,22 @@ import {
     Center,
     ContactShadows,
     OrbitControls,
-    useGLTF,
 } from '@react-three/drei';
 
 import Aside from './Aside';
 import {
     FABRICS,
+    FABRIC_COLORS,
     HAIR,
     HAIR_COLORS,
     INITIAL,
     OUTFITS,
     SKINS,
     type Body,
+    type Fabric,
     type SimAppearance,
 } from './CharacterData';
+import CustomizedSimModel from './CustomizedSimModel';
 
 export type { SimAppearance } from './CharacterData';
 
@@ -30,25 +32,6 @@ export type PlayerChoices = {
     birthOutcome: string;
     home: string;
 };
-
-function SimModel({ body }: { body: Body }) {
-    const modelUrl =
-        body === 'Woman'
-            ? '/models/sim-woman.glb'
-            : '/models/sim-man.glb';
-
-    const { scene } = useGLTF(modelUrl);
-
-    return (
-        <Center position={[0, 0.05, 0]}>
-            <primitive
-                object={scene}
-                scale={1.5}
-                dispose={null}
-            />
-        </Center>
-    );
-}
 
 const STEPS = [
     'Look',
@@ -130,11 +113,11 @@ export default function CharacterCreator({
 
         try {
             localStorage.setItem(
-                'lagos-life-player-choices',
+                'freetong-life-player-choices',
                 JSON.stringify(choices),
             );
             localStorage.setItem(
-                'lagos-life-player-appearance',
+                'freetong-life-player-appearance',
                 JSON.stringify(appearance),
             );
         } catch {
@@ -145,7 +128,7 @@ export default function CharacterCreator({
 
         if (!onComplete) {
             window.dispatchEvent(
-                new CustomEvent('lagos-life:character-created', {
+                new CustomEvent('freetong-life:character-created', {
                     detail: choices,
                 }),
             );
@@ -185,11 +168,10 @@ export default function CharacterCreator({
                     {STEPS.map((_, index) => (
                         <span
                             key={index}
-                            className={`h-1.5 w-6 rounded-full ${
-                                index <= step
-                                    ? 'bg-emerald-500'
-                                    : 'bg-slate-300'
-                            }`}
+                            className={`h-1.5 w-6 rounded-full ${index <= step
+                                ? 'bg-emerald-500'
+                                : 'bg-slate-300'
+                                }`}
                         />
                     ))}
                 </div>
@@ -204,7 +186,7 @@ export default function CharacterCreator({
                     }}
                     dpr={[1, 1.75]}
                 >
-                    <Suspense fallback={null}>
+                    {/* <Suspense fallback={null}> */}
                         <color
                             attach="background"
                             args={['#eaf3ff']}
@@ -233,7 +215,9 @@ export default function CharacterCreator({
                             <meshStandardMaterial color="#d9dce1" />
                         </mesh>
 
-                        <SimModel body={appearance.body} />
+                        <Center top position={[0, -1.28, 0]}>
+                            <CustomizedSimModel appearance={appearance} scale={1.5} />
+                        </Center>
 
                         <ContactShadows
                             position={[0, -1.26, 0]}
@@ -254,7 +238,7 @@ export default function CharacterCreator({
                             maxPolarAngle={Math.PI / 1.95}
                             rotateSpeed={0.7}
                         />
-                    </Suspense>
+                    {/* </Suspense> */}
                 </Canvas>
 
                 <div className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 text-center text-xs font-medium text-slate-500">
@@ -273,7 +257,7 @@ export default function CharacterCreator({
                 setDream={setDream}
                 birthOutcome={birthOutcome}
                 setBirthOutcome={setBirthOutcome}
-                
+
                 home={home}
                 setHome={setHome}
                 continueStep={() =>
@@ -287,5 +271,3 @@ export default function CharacterCreator({
     );
 }
 
-useGLTF.preload('/models/sim-woman.glb');
-useGLTF.preload('/models/sim-man.glb');

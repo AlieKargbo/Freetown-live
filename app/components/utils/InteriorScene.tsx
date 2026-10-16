@@ -8,6 +8,7 @@ import Avatar from './Avatar';
 import Furniture from './Furniture';
 import type { BuildingInfo } from './Info';
 import { hash, playersIn, useGame } from './Store';
+import { INITIAL } from '../Game-setup/CharacterData';
 import PlayerHomeDetails from '../zoned/Interior/PlayerHomeDetails';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import SugarLoafMemorialScene from './SugarLoafMemorialScene';
@@ -250,7 +251,7 @@ export default function InteriorScene({ info }: { info: BuildingInfo }) {
                 target={target}
                 say={chat?.text ?? null}
                 isYou
-                modelUrl={info.id === 'player-home' ? (player?.body === 'Man' ? '/models/sim-man.glb' : '/models/sim-woman.glb') : undefined}
+                appearance={info.id === 'player-home' ? (player ?? INITIAL) : undefined}
             />
 
             <OrbitControls
