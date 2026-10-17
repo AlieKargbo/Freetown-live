@@ -1,40 +1,81 @@
-import { Pool } from 'pg';
+export interface PlayerRecord {
+  id: number;
+  username: string;
+  display_name: string;
+}
 
-const globalForDb = globalThis as typeof globalThis & { freetownPool?: Pool; freetownSchema?: Promise<void> };
+export interface LoginRecord {
+  id: number;
+  username: string;
+  password_salt: string;
+  password_hash: string;
+}
 
-export const db = globalForDb.freetownPool ?? new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 10,
-  idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000,
-});
+export class DataServiceError extends Error {
+  constructor(message: string, public readonly status: number) {
+    super(message);
+    this.name = 'DataServiceError';
+  }
+}
 
-if (process.env.NODE_ENV !== 'production') globalForDb.freetownPool = db;
+async function callDataService<T>(action: string, values: Record<string, unknown> = {}): Promise<T> {
+  const baseUrl = process.env.CLOUDFLARE_API_URL;
+  const token = process.env.CLOUDFLARE_API_TOKEN;
+  if (!baseUrl || !token) throw new Error('Cloudflare data service is not configured.');
 
-export async function ensureSchema() {
-  if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not configured.');
-  globalForDb.freetownSchema ??= db.query(`
-    CREATE TABLE IF NOT EXISTS players (
-      id BIGSERIAL PRIMARY KEY,
-      username TEXT NOT NULL UNIQUE,
-      email TEXT UNIQUE,
-      display_name TEXT NOT NULL,
-      password_salt TEXT NOT NULL,
-      password_hash TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE TABLE IF NOT EXISTS player_sessions (
-      token_hash TEXT PRIMARY KEY,
-      player_id BIGINT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
-      expires_at TIMESTAMPTZ NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE INDEX IF NOT EXISTS player_sessions_expiry_idx ON player_sessions (expires_at);
-    CREATE TABLE IF NOT EXISTS player_saves (
-      player_id BIGINT PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
-      data JSONB NOT NULL,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `).then(() => undefined);
-  return globalForDb.freetownSchema;
+  const endpoint = new URL('/_internal/db', baseUrl);
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ action, ...values }),
+    signal: AbortSignal.timeout(10_000),
+    cache: 'no-store',
+  });
+
+  const result = await response.json().catch(() => ({})) as { error?: unknown } & T;
+  if (!response.ok) {
+    const message = typeof result.error === 'string' ? result.error : 'Cloudflare data service request failed.';
+    throw new DataServiceError(message, response.status);
+  }
+  return result;
+}
+
+export function createPlayer(input: {
+  username: string;
+  email: string | null;
+  displayName: string;
+  passwordSalt: string;
+  passwordHash: string;
+}) {
+  return callDataService<{ id: number }>('create-player', input);
+}
+
+export function findPlayerForLogin(username: string, email: string) {
+  return callDataService<{ player: LoginRecord | null }>('find-player', { username, email })
+    .then(({ player }) => player);
+}
+
+export function insertSession(playerId: number, tokenHash: string, expiresAt: number) {
+  return callDataService<{ ok: true }>('create-session', { playerId, tokenHash, expiresAt });
+}
+
+export function findPlayerBySession(tokenHash: string, now: number) {
+  return callDataService<{ player: PlayerRecord | null }>('find-session', { tokenHash, now })
+    .then(({ player }) => player);
+}
+
+export function deleteSession(tokenHash: string) {
+  return callDataService<{ ok: true }>('delete-session', { tokenHash });
+}
+
+export function getPlayerSave(playerId: number) {
+  return callDataService<{ save: unknown | null }>('get-save', { playerId })
+    .then(({ save }) => save);
+}
+
+export function putPlayerSave(playerId: number, save: unknown) {
+  return callDataService<{ ok: true }>('put-save', { playerId, save });
 }

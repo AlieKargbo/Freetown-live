@@ -12,7 +12,9 @@ import {
 
 const APPEARANCE_STORAGE_KEY = 'freetown-life-player-appearance';
 const PLAYER_ID_STORAGE_KEY = 'freetown-life-multiplayer-id';
-const DEFAULT_URL = process.env.NODE_ENV === 'development' ? 'ws://localhost:8787' : '';
+const DEFAULT_URL = process.env.NODE_ENV === 'development'
+  ? 'ws://localhost:8787'
+  : 'wss://freetong-life.aliekargbo000.workers.dev/ws';
 let presenceSocket: WebSocket | null = null;
 const HAIRSTYLES = new Set(['Braids', 'Afro', 'Bun', 'Ponytail', 'Long', 'Locs', 'Low cut', 'Gele', 'Classic']);
 const OUTFITS = new Set(['Casual', 'Office', 'Owambe', 'Site work', 'School', 'Traditional']);

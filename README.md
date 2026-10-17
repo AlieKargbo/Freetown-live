@@ -16,31 +16,26 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Local multiplayer prototype
+## Cloudflare backend
 
-Building interiors show connected players' customized Sims and synchronize their building and movement. The WebSocket service is a separate Node process:
+The Next.js app remains deployed on Vercel. The Cloudflare Worker in `realtime/` serves multiplayer WebSockets and a private D1 API used by the Vercel auth and save routes.
 
-1. In one terminal, run `npm run realtime`.
-2. In the project root, add this to `.env.local`:
+The D1 schema is in `migrations/0001_initial.sql`. Apply it locally with `npm run db:migrate:local` or remotely with `npm run db:migrate:remote`; both commands use the realtime Worker config.
 
-   ```text
-   NEXT_PUBLIC_MULTIPLAYER_URL=ws://localhost:8787
-   ```
+Configure the same long random secret in both places:
 
-   Then run `npm run dev` in another terminal.
-3. Open the game in two browser tabs, create/customize a Sim in each tab, and enter the same building. Walk by clicking a destination on the floor.
+- Cloudflare Worker secret: `APP_API_TOKEN` (set with `npx wrangler secret put APP_API_TOKEN --config realtime/wrangler.jsonc`).
+- Vercel environment variables: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_API_URL`, set to the secret and the Worker base URL. Also set `NEXT_PUBLIC_MULTIPLAYER_URL` to the Worker WebSocket URL.
 
-Run `npm run test:realtime` to check presence and movement broadcasting. The service exposes `GET /health`; set `PORT` and `ALLOWED_ORIGINS` when hosting it. Configure the app's `NEXT_PUBLIC_MULTIPLAYER_URL` to the service's `wss://` endpoint in production and allow the deployed app origin.
+For local development, run `npm run dev` in `realtime/` to start the Worker on port 8787, then run the Next.js app with `npm run dev` from the project root. In `.env.local`, set `CLOUDFLARE_API_URL=http://localhost:8787`, `CLOUDFLARE_API_TOKEN` to match `APP_API_TOKEN` in `realtime/.dev.vars`, and `NEXT_PUBLIC_MULTIPLAYER_URL=ws://localhost:8787`.
 
-This is an anonymous prototype: player IDs are created per browser tab, and the current client-side signup does not authenticate users to the WebSocket service. Do not expose it as a trusted production service until server-side authentication and authorization are added.
+Deploy the realtime Worker separately from the Vercel app. The app's GitHub push continues to deploy through Vercel; it does not deploy the Worker.
 
-## Local PostgreSQL
+The realtime WebSocket room still accepts anonymous player identities and is not linked to account sessions. The D1 account API is protected separately by `APP_API_TOKEN`.
 
-The app stores registered player accounts, login sessions, and game saves in PostgreSQL. Set `DATABASE_URL` in `.env.local` (see `.env.example`); the database user needs permission to create tables in the selected database. The app creates the required `players`, `player_sessions`, and `player_saves` tables on its first API request.
+## D1 database
 
-Restart `npm run dev` after changing `.env.local`. Accounts created before PostgreSQL was connected only exist in that browser and must be created again through `/signup` to use database-backed login. Game saves still keep a browser-local copy for offline recovery and sync to PostgreSQL when the player is signed in.
-
-The local `.env.local` file contains credentials and is ignored by Git. Use a separate database and strong credentials before deploying; a computer's `localhost` database is not reachable by a hosted deployment.
+Player accounts, login sessions, and game saves use the Cloudflare D1 database bound to the realtime Worker. Game saves also keep a browser-local copy for offline recovery and sync to D1 when the player is signed in.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

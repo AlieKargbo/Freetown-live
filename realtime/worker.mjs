@@ -4,6 +4,7 @@ const MAX_PLAYERS = 500;
 const MAX_MESSAGE_BYTES = 32 * 1024;
 const MAX_DIRECT_MESSAGE_LENGTH = 1000;
 const MAX_PENDING_INBOX = 100;
+const MAX_INTERNAL_BODY_BYTES = 1_050_000;
 const USERNAME_PATTERN = /^@?[A-Za-z0-9_]{1,24}$/;
 const VECTOR_PATTERN = /^[\w -]{1,100}$/;
 const BODIES = new Set(['Woman', 'Man']);
@@ -48,10 +49,135 @@ function safeSend(socket, message) {
   }
 }
 
+function hasValidServiceToken(request, expectedToken) {
+  if (!expectedToken) return false;
+  const supplied = request.headers.get('Authorization') ?? '';
+  const expected = `Bearer ${expectedToken}`;
+  if (supplied.length !== expected.length) return false;
+  let difference = 0;
+  for (let index = 0; index < expected.length; index++) difference |= supplied.charCodeAt(index) ^ expected.charCodeAt(index);
+  return difference === 0;
+}
+
+async function handleInternalDatabaseRequest(request, env) {
+  if (!hasValidServiceToken(request, env.APP_API_TOKEN)) return new Response('Not found', { status: 404 });
+  if (request.method !== 'POST') return Response.json({ error: 'Method not allowed.' }, { status: 405 });
+
+  let text;
+  let body;
+  try {
+    text = await request.text();
+    if (new TextEncoder().encode(text).byteLength > MAX_INTERNAL_BODY_BYTES) {
+      return Response.json({ error: 'Request is too large.' }, { status: 413 });
+    }
+    body = JSON.parse(text);
+  } catch {
+    return Response.json({ error: 'Invalid request body.' }, { status: 400 });
+  }
+  if (!body || typeof body !== 'object' || Array.isArray(body) || typeof body.action !== 'string') {
+    return Response.json({ error: 'Invalid request.' }, { status: 400 });
+  }
+
+  const validPlayerId = Number.isSafeInteger(body.playerId) && body.playerId > 0;
+  const validTokenHash = (value) => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
+  try {
+    switch (body.action) {
+      case 'create-player': {
+        const { username, email, displayName, passwordSalt, passwordHash } = body;
+        if (typeof username !== 'string' || !/^[a-z0-9_]{3,20}$/.test(username)
+          || (email !== null && (typeof email !== 'string' || email.length > 254))
+          || typeof displayName !== 'string' || !displayName || displayName.length > 80
+          || typeof passwordSalt !== 'string' || !/^[a-f0-9]{32}$/.test(passwordSalt)
+          || typeof passwordHash !== 'string' || !/^[a-f0-9]{64}$/.test(passwordHash)) {
+          return Response.json({ error: 'Invalid account data.' }, { status: 400 });
+        }
+        const player = await env.DB.prepare(
+          'INSERT INTO players (username, email, display_name, password_salt, password_hash) VALUES (?, ?, ?, ?, ?) RETURNING id',
+        ).bind(username, email, displayName, passwordSalt, passwordHash).first();
+        return Response.json({ id: player.id });
+      }
+      case 'find-player': {
+        if (typeof body.username !== 'string' || typeof body.email !== 'string') {
+          return Response.json({ error: 'Invalid login identifier.' }, { status: 400 });
+        }
+        const player = await env.DB.prepare(
+          'SELECT id, username, password_salt, password_hash FROM players WHERE username = ? OR email = ? LIMIT 1',
+        ).bind(body.username, body.email).first();
+        return Response.json({ player });
+      }
+      case 'create-session': {
+        if (!validPlayerId || !validTokenHash(body.tokenHash) || !Number.isSafeInteger(body.expiresAt)) {
+          return Response.json({ error: 'Invalid session data.' }, { status: 400 });
+        }
+        await env.DB.prepare(
+          'INSERT INTO player_sessions (token_hash, player_id, expires_at) VALUES (?, ?, ?)',
+        ).bind(body.tokenHash, body.playerId, body.expiresAt).run();
+        return Response.json({ ok: true });
+      }
+      case 'find-session': {
+        if (!validTokenHash(body.tokenHash) || !Number.isSafeInteger(body.now)) {
+          return Response.json({ error: 'Invalid session lookup.' }, { status: 400 });
+        }
+        const player = await env.DB.prepare(
+          `SELECT p.id, p.username, p.display_name FROM player_sessions s
+           JOIN players p ON p.id = s.player_id WHERE s.token_hash = ? AND s.expires_at > ?`,
+        ).bind(body.tokenHash, body.now).first();
+        return Response.json({ player });
+      }
+      case 'delete-session': {
+        if (!validTokenHash(body.tokenHash)) return Response.json({ error: 'Invalid session.' }, { status: 400 });
+        await env.DB.prepare('DELETE FROM player_sessions WHERE token_hash = ?').bind(body.tokenHash).run();
+        return Response.json({ ok: true });
+      }
+      case 'get-save': {
+        if (!validPlayerId) return Response.json({ error: 'Invalid player.' }, { status: 400 });
+        const row = await env.DB.prepare('SELECT data FROM player_saves WHERE player_id = ?').bind(body.playerId).first();
+        return Response.json({ save: row ? JSON.parse(row.data) : null });
+      }
+      case 'put-save': {
+        if (!validPlayerId || !body.save || typeof body.save !== 'object' || Array.isArray(body.save)) {
+          return Response.json({ error: 'Invalid save data.' }, { status: 400 });
+        }
+        const data = JSON.stringify(body.save);
+        if (new TextEncoder().encode(data).byteLength > 1_000_000) {
+          return Response.json({ error: 'Save data is too large.' }, { status: 413 });
+        }
+        await env.DB.prepare(
+          `INSERT INTO player_saves (player_id, data, updated_at) VALUES (?, ?, ?)
+           ON CONFLICT (player_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at`,
+        ).bind(body.playerId, data, Date.now()).run();
+        return Response.json({ ok: true });
+      }
+      default:
+        return Response.json({ error: 'Unsupported database action.' }, { status: 400 });
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
+      return Response.json({ error: 'Account already exists.' }, { status: 409 });
+    }
+    return Response.json({ error: 'Database request failed.' }, { status: 503 });
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === '/health') return Response.json({ status: 'ok' });
+    if (url.pathname === '/_internal/db') return handleInternalDatabaseRequest(request, env);
+    if (url.pathname === '/db-health') {
+      const token = env.DB_HEALTH_TOKEN;
+      if (!token || request.headers.get('Authorization') !== `Bearer ${token}`) {
+        return new Response('Not found', { status: 404 });
+      }
+
+      try {
+        const result = await env.DB.prepare('SELECT 1 AS connected').first();
+        const connected = result?.connected === 1;
+        return Response.json({ database: connected ? 'connected' : 'error' }, { status: connected ? 200 : 503 });
+      } catch {
+        return Response.json({ database: 'error' }, { status: 503 });
+      }
+    }
     if (url.pathname !== '/' && url.pathname !== '/ws') return new Response('Not found', { status: 404 });
     if (request.headers.get('Upgrade')?.toLowerCase() !== 'websocket') {
       return new Response('Expected a WebSocket upgrade.', { status: 426 });

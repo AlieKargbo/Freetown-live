@@ -39,7 +39,7 @@ export default function GamePersistence({ onReady }: { onReady?: () => void }) {
           keepalive: true,
         });
       } catch {
-        // A local save remains available while PostgreSQL is offline.
+        // A local save remains available while D1 is unavailable.
       }
     };
 

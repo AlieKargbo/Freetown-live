@@ -12,10 +12,21 @@
       }
     ]
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "freetong-life",
+      "database_id": "4d78e891-3d14-4751-a63b-ed2794de2d70",
+      "migrations_dir": "../migrations"
+    }
+  ],
   "migrations": [
     {
       "tag": "v1",
       "new_sqlite_classes": ["RealtimeRoom"]
     }
-  ]
+  ],
+  "vars": {
+    "ALLOWED_ORIGINS": "http://localhost:3000,http://127.0.0.1:3000,https://freetong-life.site,https://www.freetong-life.site,https://freetown-life.aliekargbo000.workers.dev"
+  }
 }

@@ -1,7 +1,7 @@
 import { pbkdf2Sync, randomBytes, timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { clearSession, createSession, getSessionPlayer } from '@/app/lib/auth';
-import { db, ensureSchema } from '@/app/lib/db';
+import { createPlayer, DataServiceError, findPlayerForLogin } from '@/app/lib/db';
 
 const ITERATIONS = 210_000;
 
@@ -33,8 +33,6 @@ export async function POST(request: Request) {
     const operation = body.operation;
     const password = typeof body.password === 'string' ? body.password : '';
     if (password.length < 8 || password.length > 200) return NextResponse.json({ error: 'Use a password with at least 8 characters.' }, { status: 400 });
-    await ensureSchema();
-
     if (operation === 'signup') {
       const username = typeof body.username === 'string' ? body.username.trim().replace(/^@/, '').toLowerCase() : '';
       const displayName = typeof body.displayName === 'string' ? body.displayName.trim() : '';
@@ -47,11 +45,8 @@ export async function POST(request: Request) {
 
       const salt = randomBytes(16).toString('hex');
       const passwordHash = hashPassword(password, salt);
-      const created = await db.query<{ id: string }>(
-        `INSERT INTO players (username, email, display_name, password_salt, password_hash)
-         VALUES ($1, $2, $3, $4, $5) RETURNING id`, [username, email || null, displayName, salt, passwordHash],
-      );
-      await createSession(created.rows[0].id);
+      const created = await createPlayer({ username, email: email || null, displayName, passwordSalt: salt, passwordHash });
+      await createSession(created.id);
       return NextResponse.json({ ok: true, username: `@${username}` }, { status: 201 });
     }
 
@@ -59,10 +54,7 @@ export async function POST(request: Request) {
       const identifier = typeof body.identifier === 'string' ? body.identifier.trim() : '';
       const normalized = identifier.replace(/^@/, '').toLowerCase();
       if (!normalized) return NextResponse.json({ error: 'Enter your username or email and password.' }, { status: 400 });
-      const result = await db.query<{ id: string; username: string; password_salt: string; password_hash: string }>(
-        'SELECT id, username, password_salt, password_hash FROM players WHERE username = $1 OR email = $2 LIMIT 1', [normalized, identifier.toLowerCase()],
-      );
-      const player = result.rows[0];
+      const player = await findPlayerForLogin(normalized, identifier.toLowerCase());
       if (!player) return NextResponse.json({ error: 'The username/email or password is incorrect.' }, { status: 401 });
       const expected = Buffer.from(player.password_hash, 'hex');
       const actual = Buffer.from(hashPassword(password, player.password_salt), 'hex');
@@ -72,7 +64,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ error: 'Unsupported authentication operation.' }, { status: 400 });
   } catch (error) {
-    if (typeof error === 'object' && error && 'code' in error && (error.code === '23505')) {
+    if (error instanceof DataServiceError && error.status === 409) {
       return NextResponse.json({ error: 'That username or email is already registered.' }, { status: 409 });
     }
     return NextResponse.json({ error: 'Could not connect to the game database.' }, { status: 503 });
