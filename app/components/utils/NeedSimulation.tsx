@@ -3,8 +3,8 @@
 import { useEffect } from 'react';
 import { game } from './Store';
 
-// One real second advances one in-game minute while the player is online.
-export const SIM_MINUTES_PER_REAL_SECOND = 1;
+// A 24-hour game day takes 10 real-world minutes (2.4 game minutes per second).
+export const SIM_MINUTES_PER_REAL_SECOND = 2.4;
 
 export default function NeedSimulation({ active }: { active: boolean }) {
   useEffect(() => {

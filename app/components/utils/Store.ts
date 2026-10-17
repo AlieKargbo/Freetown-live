@@ -25,6 +25,7 @@ export type MultiplayerPlayer = {
 type Chat = { text: string; t: number };
 export type DirectMessage = { id: string; from: string; to: string; text: string; sentAt: number };
 export type WalletTransfer = { id: string; from: string; to: string; amount: number; sentAt: number };
+export type CharacterSetup = { traits: string[]; birthOutcome: string; home: string };
 export type TravelTrip = {
   id: string;
   from: BuildingInfo | null;
@@ -56,8 +57,10 @@ type State = {
   skillGoalRewarded: boolean;
   dream: string | null;
   dreamProgress: DreamProgress;
+  characterSetup: CharacterSetup | null;
   contacts: string[];
   messages: DirectMessage[];
+  messageNotification: DirectMessage | null;
   walletTransfers: WalletTransfer[];
   player: SimAppearance | null;
   playerHome: BuildingInfo | null;
@@ -66,10 +69,12 @@ type State = {
   currentLocation: BuildingInfo | null;
   travel: TravelTrip | null;
   chat: Chat | null; // last thing the player said (shown as a bubble for a few seconds)
+  interactionPromptsHidden: boolean;
 };
 
 type Actions = {
   setAuthenticated: (authenticated: boolean) => void;
+  setInteractionPromptsHidden: (hidden: boolean) => void;
   setPlayerUsername: (username: string) => void;
   reportPlayerMovement: (position: [number, number], target: [number, number] | null) => void;
   setRemotePlayers: (players: MultiplayerPlayer[]) => void;
@@ -89,8 +94,11 @@ type Actions = {
   completeCafeTask: () => boolean;
   setPlayer: (player: SimAppearance) => void;
   setDream: (dream: string) => void;
+  setCharacterSetup: (setup: CharacterSetup) => void;
   addContact: (username: string) => boolean;
   recordMessage: (message: DirectMessage) => void;
+  receiveMessage: (message: DirectMessage) => void;
+  dismissMessageNotification: () => void;
   receivePayment: (transfer: WalletTransfer) => void;
   sendPayment: (transfer: WalletTransfer) => boolean;
   restorePlayer: (player: SimAppearance) => void;
@@ -109,7 +117,7 @@ type GameStore = State & Actions;
 export type SavedGameProgress = Pick<State,
   'playerUsername' | 'playerPosition' | 'needs' | 'money' | 'purchases' |
   'hasCafeJob' | 'isOnCafeShift' | 'cafeShiftTasks' | 'shiftsCompleted' |
-  'firstDayComplete' | 'skills' | 'skillGoalRewarded' | 'dream' | 'dreamProgress' | 'contacts' | 'messages' | 'walletTransfers' | 'player' | 'playerHome' | 'currentLocation' | 'interior'
+  'firstDayComplete' | 'skills' | 'skillGoalRewarded' | 'dream' | 'dreamProgress' | 'characterSetup' | 'contacts' | 'messages' | 'walletTransfers' | 'player' | 'playerHome' | 'currentLocation' | 'interior'
 >;
 
 const CAFE_SHIFT_TASKS = 3;
@@ -158,8 +166,10 @@ const useGameStore = create<GameStore>()((set, get) => ({
   skillGoalRewarded: false,
   dream: null,
   dreamProgress: INITIAL_DREAM_PROGRESS,
+  characterSetup: null,
   contacts: [],
   messages: [],
+  messageNotification: null,
   walletTransfers: [],
   player: null,
   playerHome: null,
@@ -168,7 +178,9 @@ const useGameStore = create<GameStore>()((set, get) => ({
   currentLocation: null,
   travel: null,
   chat: null,
+  interactionPromptsHidden: false,
   setAuthenticated: (authenticated) => set({ authenticated }),
+  setInteractionPromptsHidden: (interactionPromptsHidden) => set({ interactionPromptsHidden }),
   setPlayerUsername: (playerUsername) => set({ playerUsername }),
   reportPlayerMovement: (playerPosition, playerTarget) => set({ playerPosition, playerTarget }),
   setRemotePlayers: (remotePlayers) => set({ remotePlayers }),
@@ -353,6 +365,7 @@ const useGameStore = create<GameStore>()((set, get) => ({
   },
   setPlayer: (player) => set({ player, needs: INITIAL_NEEDS, activity: null }),
   setDream: (dream) => set({ dream, dreamProgress: { ...INITIAL_DREAM_PROGRESS, friendshipPoints: {} } }),
+  setCharacterSetup: (characterSetup) => set({ characterSetup }),
   addContact: (username) => {
     const normalized = username.trim().replace(/^@/, '').toLowerCase();
     if (!/^[a-z0-9_]{1,24}$/.test(normalized) || normalized === get().playerUsername.replace(/^@/, '').toLowerCase()) return false;
@@ -365,6 +378,12 @@ const useGameStore = create<GameStore>()((set, get) => ({
       : [...state.contacts, message.from === state.playerUsername.replace(/^@/, '').toLowerCase() ? message.to : message.from],
     messages: state.messages.some((item) => item.id === message.id) ? state.messages : [...state.messages, message].slice(-500),
   })),
+  receiveMessage: (message) => {
+    const isNewMessage = !get().messages.some((item) => item.id === message.id);
+    get().recordMessage(message);
+    if (isNewMessage) set({ messageNotification: message });
+  },
+  dismissMessageNotification: () => set({ messageNotification: null }),
   receivePayment: (transfer) => set((state) => {
     if (state.walletTransfers.some((item) => item.id === transfer.id)) return state;
     const username = state.playerUsername.replace(/^@/, '').toLowerCase();
@@ -435,8 +454,8 @@ export function useGame<T>(select: (state: State) => T): T {
 // Keep an imperative facade for events originating outside React components.
 export const game = {
   get: (): State => {
-    const { authenticated, playerUsername, playerPosition, playerTarget, remotePlayers, multiplayerStatus, multiplayerError, needs, activity, money, purchases, hasCafeJob, isOnCafeShift, cafeShiftTasks, shiftsCompleted, firstDayComplete, skills, skillGoalRewarded, dream, dreamProgress, contacts, messages, walletTransfers, player, playerHome, popup, interior, currentLocation, travel, chat } = useGameStore.getState();
-    return { authenticated, playerUsername, playerPosition, playerTarget, remotePlayers, multiplayerStatus, multiplayerError, needs, activity, money, purchases, hasCafeJob, isOnCafeShift, cafeShiftTasks, shiftsCompleted, firstDayComplete, skills, skillGoalRewarded, dream, dreamProgress, contacts, messages, walletTransfers, player, playerHome, popup, interior, currentLocation, travel, chat };
+    const { authenticated, playerUsername, playerPosition, playerTarget, remotePlayers, multiplayerStatus, multiplayerError, needs, activity, money, purchases, hasCafeJob, isOnCafeShift, cafeShiftTasks, shiftsCompleted, firstDayComplete, skills, skillGoalRewarded, dream, dreamProgress, characterSetup, contacts, messages, messageNotification, walletTransfers, player, playerHome, popup, interior, currentLocation, travel, chat, interactionPromptsHidden } = useGameStore.getState();
+    return { authenticated, playerUsername, playerPosition, playerTarget, remotePlayers, multiplayerStatus, multiplayerError, needs, activity, money, purchases, hasCafeJob, isOnCafeShift, cafeShiftTasks, shiftsCompleted, firstDayComplete, skills, skillGoalRewarded, dream, dreamProgress, characterSetup, contacts, messages, messageNotification, walletTransfers, player, playerHome, popup, interior, currentLocation, travel, chat, interactionPromptsHidden };
   },
   getSave: (): SavedGameProgress => {
     const state = useGameStore.getState();
@@ -455,6 +474,7 @@ export const game = {
       skillGoalRewarded: state.skillGoalRewarded,
       dream: state.dream,
       dreamProgress: state.dreamProgress,
+      characterSetup: state.characterSetup,
       contacts: state.contacts,
       messages: state.messages,
       walletTransfers: state.walletTransfers,
@@ -479,6 +499,11 @@ export const game = {
     skills: saved.skills && typeof saved.skills === 'object' ? sanitizeSkillXp(saved.skills) : state.skills,
     skillGoalRewarded: typeof saved.skillGoalRewarded === 'boolean' ? saved.skillGoalRewarded : state.skillGoalRewarded,
     dream: typeof saved.dream === 'string' ? saved.dream : state.dream,
+    characterSetup: saved.characterSetup && typeof saved.characterSetup === 'object' ? {
+      traits: Array.isArray(saved.characterSetup.traits) ? saved.characterSetup.traits.filter((item): item is string => typeof item === 'string').slice(0, 2) : [],
+      birthOutcome: typeof saved.characterSetup.birthOutcome === 'string' ? saved.characterSetup.birthOutcome : '',
+      home: typeof saved.characterSetup.home === 'string' ? saved.characterSetup.home : '',
+    } : state.characterSetup,
     dreamProgress: saved.dreamProgress && typeof saved.dreamProgress === 'object' ? {
       careerTasksCompleted: Number.isInteger(saved.dreamProgress.careerTasksCompleted) ? Math.max(0, saved.dreamProgress.careerTasksCompleted) : state.dreamProgress.careerTasksCompleted,
       lifetimeCareerEarnings: Number.isFinite(saved.dreamProgress.lifetimeCareerEarnings) ? Math.max(0, saved.dreamProgress.lifetimeCareerEarnings) : state.dreamProgress.lifetimeCareerEarnings,
@@ -524,6 +549,7 @@ export const game = {
   })),
   subscribe: (listener: () => void) => useGameStore.subscribe(listener),
   setAuthenticated: (authenticated: boolean) => useGameStore.getState().setAuthenticated(authenticated),
+  setInteractionPromptsHidden: (hidden: boolean) => useGameStore.getState().setInteractionPromptsHidden(hidden),
   setPlayerUsername: (username: string) => useGameStore.getState().setPlayerUsername(username),
   reportPlayerMovement: (position: [number, number], target: [number, number] | null) => useGameStore.getState().reportPlayerMovement(position, target),
   setRemotePlayers: (players: MultiplayerPlayer[]) => useGameStore.getState().setRemotePlayers(players),
@@ -543,8 +569,11 @@ export const game = {
   completeCafeTask: () => useGameStore.getState().completeCafeTask(),
   setPlayer: (player: SimAppearance) => useGameStore.getState().setPlayer(player),
   setDream: (dream: string) => useGameStore.getState().setDream(dream),
+  setCharacterSetup: (setup: CharacterSetup) => useGameStore.getState().setCharacterSetup(setup),
   addContact: (username: string) => useGameStore.getState().addContact(username),
   recordMessage: (message: DirectMessage) => useGameStore.getState().recordMessage(message),
+  receiveMessage: (message: DirectMessage) => useGameStore.getState().receiveMessage(message),
+  dismissMessageNotification: () => useGameStore.getState().dismissMessageNotification(),
   receivePayment: (transfer: WalletTransfer) => useGameStore.getState().receivePayment(transfer),
   sendPayment: (transfer: WalletTransfer) => useGameStore.getState().sendPayment(transfer),
   restorePlayer: (player: SimAppearance) => useGameStore.getState().restorePlayer(player),

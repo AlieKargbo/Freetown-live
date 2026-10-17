@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   BriefcaseBusiness,
   Gem,
@@ -14,9 +15,12 @@ import {
   Home,
   Map as MapIcon,
   ShoppingBag,
+  LogOut,
 } from 'lucide-react';
 import PlayerStatusBar from '../Interior/PlayerStatusBar';
-import { useGame } from '../../utils/Store';
+import { AUTH_STORAGE_KEY, PLAYER_USERNAME_STORAGE_KEY, game, useGame } from '../../utils/Store';
+import useGameClock from '../../utils/useGameClock';
+import { formatGameTime } from '@/app/Game/clock';
 
 type GameHUDProps = {
   onOpenJobs?: () => void;
@@ -47,14 +51,42 @@ export default function GameHUD({
   avatar,
   showNeeds = true,
 }: GameHUDProps) {
+  const router = useRouter();
+  const worldClock = useGameClock();
   const hasCafeJob = useGame((state) => state.hasCafeJob);
   const shiftsCompleted = useGame((state) => state.shiftsCompleted);
   const firstDayComplete = useGame((state) => state.firstDayComplete);
   const skillGoalRewarded = useGame((state) => state.skillGoalRewarded);
   const interiorId = useGame((state) => state.interior?.id ?? null);
+  const messageNotification = useGame((state) => state.messageNotification);
   const [clean, setClean] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [panelTab, setPanelTab] = useState<string | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
+
+  useEffect(() => {
+    game.setInteractionPromptsHidden(panelTab !== null);
+    return () => game.setInteractionPromptsHidden(false);
+  }, [panelTab]);
+
+  const signOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await fetch('/api/auth', { method: 'DELETE' });
+    } catch {
+      // Clear the local session even if the server cannot be reached.
+    }
+    try {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+      localStorage.removeItem(PLAYER_USERNAME_STORAGE_KEY);
+    } catch {
+      // Continue to login even if browser storage is unavailable.
+    }
+    game.setAuthenticated(false);
+    game.setPlayerUsername('');
+    router.replace('/login');
+  };
 
   // Home is active by default.
   const [activeNav, setActiveNav] = useState<'home' | 'map'>('home');
@@ -75,6 +107,12 @@ export default function GameHUD({
   const openPanel = (tab: string) => {
     setMenuOpen(false);
     setPanelTab(tab);
+  };
+
+  const openMessenger = () => {
+    game.dismissMessageNotification();
+    if (onOpenPhone) onOpenPhone();
+    else openPanel('Phone');
   };
 
   const openJobs = () => {
@@ -117,9 +155,9 @@ export default function GameHUD({
       {!clean && (
         <header className="pointer-events-auto absolute left-3 right-3 top-3 mx-auto flex max-w-3xl items-center justify-between gap-2 rounded-full border border-white/70 bg-white/95 px-3 py-2 shadow-lg backdrop-blur-xl sm:left-5 sm:right-5 sm:px-5">
           <div className="flex min-w-0 items-center gap-2 sm:gap-4">
-            <span className="text-lg sm:text-xl">☀️</span>
+            <span className="text-lg sm:text-xl">{worldClock.isDay ? '☀️' : '🌙'}</span>
             <span className="truncate text-sm font-semibold text-slate-800 sm:text-base">
-              Mon 12 · 9:13 AM
+              Day {worldClock.day} · {formatGameTime(worldClock)}
             </span>
             <span className="hidden items-center gap-1 text-sm font-bold text-emerald-500 sm:flex">
               😊 {mood}
@@ -146,8 +184,44 @@ export default function GameHUD({
             >
               +
             </button>
+
+            <button
+              type="button"
+              aria-label="Sign out"
+              title="Sign out"
+              disabled={signingOut}
+              onClick={signOut}
+              className="inline-flex h-9 items-center justify-center gap-1 rounded-full px-2 text-slate-600 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-60 sm:h-10 sm:px-3"
+            >
+              <LogOut size={17} aria-hidden="true" />
+              <span className="hidden text-xs font-bold sm:inline">Sign out</span>
+            </button>
           </div>
         </header>
+      )}
+
+      {!clean && messageNotification && (
+        <aside
+          role="status"
+          aria-live="polite"
+          className="pointer-events-auto absolute left-1/2 top-[68px] z-[110] w-[min(440px,calc(100%-24px))] -translate-x-1/2"
+        >
+          <div className="flex items-center gap-3 rounded-2xl border border-emerald-100 bg-white/95 px-3 py-2.5 shadow-xl backdrop-blur-xl">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-100 text-lg" aria-hidden="true">💬</span>
+            <button type="button" onClick={openMessenger} className="min-w-0 flex-1 text-left">
+              <span className="block text-xs font-extrabold text-emerald-700">Message from @{messageNotification.from}</span>
+              <span className="block truncate text-sm text-slate-700">{messageNotification.text}</span>
+            </button>
+            <button
+              type="button"
+              aria-label="Dismiss message notification"
+              onClick={() => game.dismissMessageNotification()}
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-slate-500 hover:bg-slate-100"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </aside>
       )}
 
       {/* Tasks on the left */}

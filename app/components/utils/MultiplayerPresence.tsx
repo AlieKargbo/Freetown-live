@@ -73,7 +73,11 @@ function getPresence() {
   return {
     name: state.playerUsername.replace(/^@/, ''),
     appearance: state.player,
-    buildingId: state.travel ? null : state.interior?.id ?? null,
+    // A home is a private space: don't join a shared multiplayer room there.
+    // Public interiors use their building id as a shared room key.
+    buildingId: state.travel || state.interior?.id === 'player-home'
+      ? null
+      : state.interior?.id ?? null,
     position: state.playerPosition,
     target: state.playerTarget,
   };
@@ -91,11 +95,26 @@ export default function MultiplayerPresence() {
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = window.setTimeout(() => { void (async () => {
       try {
-        game.setAuthenticated(localStorage.getItem(AUTH_STORAGE_KEY) === 'true');
+        const wasAuthenticated = localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
+        let sessionUsername: string | null = null;
+        if (wasAuthenticated) {
+          const response = await fetch('/api/auth', { cache: 'no-store' });
+          const session = await response.json();
+          if (response.ok && session.authenticated && typeof session.username === 'string') {
+            sessionUsername = session.username;
+          } else {
+            localStorage.removeItem(AUTH_STORAGE_KEY);
+          }
+        }
+        game.setAuthenticated(Boolean(sessionUsername));
         const savedUsername = localStorage.getItem(PLAYER_USERNAME_STORAGE_KEY);
-        if (savedUsername) game.setPlayerUsername(savedUsername);
+        const username = sessionUsername ?? savedUsername;
+        if (username) {
+          game.setPlayerUsername(username);
+          if (sessionUsername) localStorage.setItem(PLAYER_USERNAME_STORAGE_KEY, sessionUsername);
+        }
 
         const savedAppearance = localStorage.getItem(APPEARANCE_STORAGE_KEY);
         if (savedAppearance) {
@@ -111,9 +130,10 @@ export default function MultiplayerPresence() {
         }
         setClientId(id);
       } catch {
+        game.setAuthenticated(false);
         game.setMultiplayerStatus('error', 'Could not restore the local player session.');
       }
-    }, 0);
+    })(); }, 0);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -141,7 +161,9 @@ export default function MultiplayerPresence() {
 
     socket.onopen = () => {
       if (disposed) return;
-      game.setMultiplayerStatus('connected');
+      // Wait for the server's snapshot (join acknowledgement) before marking
+      // the player ready to send messages.
+      game.setMultiplayerStatus('connecting');
       const presence = getPresence();
       if (presence) {
         socket.send(JSON.stringify({ type: 'join', id: clientId, ...presence }));
@@ -161,6 +183,7 @@ export default function MultiplayerPresence() {
 
       if (payload.type === 'snapshot' && Array.isArray(payload.players)) {
         game.setRemotePlayers(payload.players.filter(isRemotePlayer).filter((player) => player.id !== clientId));
+        game.setMultiplayerStatus('connected');
       } else if (payload.type === 'player' && isRemotePlayer(payload.player)) {
         if (payload.player.id !== clientId) game.updateRemotePlayer(payload.player);
       } else if (payload.type === 'left' && typeof payload.id === 'string') {
@@ -168,7 +191,7 @@ export default function MultiplayerPresence() {
       } else if (payload.type === 'direct-message' && payload.message && typeof payload.message === 'object') {
         const directMessage = payload.message as Record<string, unknown>;
         if (typeof directMessage.id === 'string' && typeof directMessage.from === 'string' && typeof directMessage.to === 'string' && typeof directMessage.text === 'string' && Number.isFinite(directMessage.sentAt)) {
-          game.recordMessage({
+          game.receiveMessage({
             id: directMessage.id,
             from: directMessage.from.toLowerCase(),
             to: directMessage.to.toLowerCase(),
@@ -187,6 +210,9 @@ export default function MultiplayerPresence() {
             sentAt: transfer.sentAt as number,
           });
         }
+      } else if (payload.type === 'delivery-status') {
+        // Delivery is reflected by the server response; chat history is already
+        // stored optimistically by the sender, and incoming messages are handled above.
       } else if (payload.type === 'error' && typeof payload.message === 'string') {
         game.setMultiplayerStatus('error', payload.message);
       }

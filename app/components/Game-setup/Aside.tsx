@@ -40,6 +40,8 @@ type AsideProps = {
     continueStep: () => void;
     finish: () => void;
     canContinue: boolean;
+    isMovingIn: boolean;
+    moveInError: string;
 };
 
 
@@ -88,6 +90,8 @@ export default function Aside({
     continueStep,
     finish,
     canContinue,
+    isMovingIn,
+    moveInError,
 }: AsideProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const mobileTop = isExpanded ? '12%' : 'calc(100% - 40px)';
@@ -376,17 +380,18 @@ export default function Aside({
 
                 <button
                     type="button"
-                    disabled={!canContinue}
+                    disabled={!canContinue || isMovingIn}
                     onClick={step === 4 ? finish : continueStep}
                     className="flex-1 rounded-full bg-emerald-500 px-5 py-4 font-extrabold text-white shadow-lg shadow-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                    {step === 3
+                    {isMovingIn ? <span className="inline-flex items-center justify-center gap-2"><span aria-hidden="true" className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />Moving in…</span> : step === 3
                         ? 'Choose where to live'
                         : step === 4
                             ? 'Move in'
                             : 'Continue'}
                 </button>
             </div>
+            {moveInError && <p role="alert" className="shrink-0 px-4 pb-3 text-center text-sm font-medium text-red-600">{moveInError}</p>}
 
         </aside>
     );

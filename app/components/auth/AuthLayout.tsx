@@ -11,9 +11,6 @@ import {
     game,
 } from '../utils/Store';
 
-const DEV_USERNAME = 'player';
-const DEV_PASSWORD = 'freetown';
-
 type AuthPageProps = {
     mode: 'signup' | 'login';
 };
@@ -21,10 +18,9 @@ type AuthPageProps = {
 export default function AuthPage({ mode }: AuthPageProps) {
     const router = useRouter();
     const isSignup = mode === 'signup';
-    const isDevelopment = process.env.NODE_ENV === 'development';
-
     const [showPassword, setShowPassword] = useState(false);
     const [message, setMessage] = useState('');
+    const [submitting, setSubmitting] = useState(false);
     const [today, setToday] = useState('');
 
     useEffect(() => {
@@ -33,66 +29,120 @@ export default function AuthPage({ mode }: AuthPageProps) {
         setToday(currentDate.toISOString().slice(0, 10));
     }, []);
 
-    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setMessage('');
+        setSubmitting(true);
 
         const form = new FormData(event.currentTarget);
-
-        if (isSignup) {
-            const username = String(form.get('username') ?? '').trim();
-            const password = String(form.get('password') ?? '');
-            const confirmPassword = String(form.get('confirmPassword') ?? '');
-
-            if (password.length < 8) {
-                setMessage('Use at least 8 characters for your password.');
-                return;
-            }
-
-            if (password !== confirmPassword) {
-                setMessage('Your passwords do not match.');
-                return;
-            }
-
-            game.setPlayerUsername(
-                username.startsWith('@') ? username : `@${username}`,
-            );
-            game.setAuthenticated(true);
-            try {
-                localStorage.setItem(
-                    PLAYER_USERNAME_STORAGE_KEY,
-                    username.startsWith('@') ? username : `@${username}`,
-                );
-                localStorage.setItem(AUTH_STORAGE_KEY, 'true');
-            } catch {
-                // Keep the in-memory session active if storage is unavailable.
-            }
-            router.push('/character');
-            return;
-        }
-
-        if (!isDevelopment) {
-            setMessage('Authentication is not configured outside development mode.');
-            return;
-        }
-
-        const username = String(form.get('username') ?? '').trim();
         const password = String(form.get('password') ?? '');
+        let result: { ok: boolean; username?: string; error?: string };
 
-        if (username !== DEV_USERNAME || password !== DEV_PASSWORD) {
-            setMessage('Incorrect development username or password.');
+        try {
+            if (isSignup) {
+                const confirmPassword = String(form.get('confirmPassword') ?? '');
+                if (password !== confirmPassword) {
+                    setMessage('Your passwords do not match.');
+                    setSubmitting(false);
+                    return;
+                }
+                const response = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'signup',
+                        username: String(form.get('username') ?? ''),
+                        displayName: String(form.get('name') ?? ''),
+                        email: String(form.get('email') ?? ''),
+                        password,
+                        dateOfBirth: String(form.get('dateOfBirth') ?? ''),
+                    }),
+                });
+                const data = await response.json();
+                result = response.ok
+                    ? { ok: true, username: data.username }
+                    : { ok: false, error: data.error ?? 'Could not create your account.' };
+            } else {
+                const response = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'login',
+                        identifier: String(form.get('username') ?? ''),
+                        password,
+                    }),
+                });
+                const data = await response.json();
+                result = response.ok
+                    ? { ok: true, username: data.username }
+                    : { ok: false, error: data.error ?? 'Could not sign in.' };
+            }
+        } catch {
+            setMessage('Could not reach the game server. Check that the app and database are running.');
+            setSubmitting(false);
             return;
         }
 
-        game.setPlayerUsername(`@${DEV_USERNAME}`);
+        if (!result.ok) {
+            setMessage(result.error ?? 'Authentication failed.');
+            setSubmitting(false);
+            return;
+        }
+
+        game.setPlayerUsername(result.username!);
         game.setAuthenticated(true);
         try {
-            localStorage.setItem(PLAYER_USERNAME_STORAGE_KEY, `@${DEV_USERNAME}`);
+            localStorage.setItem(PLAYER_USERNAME_STORAGE_KEY, result.username!);
             localStorage.setItem(AUTH_STORAGE_KEY, 'true');
         } catch {
-            // Keep the in-memory session active if storage is unavailable.
+            // Keep the in-memory session active if browser storage is unavailable.
         }
-        router.replace('/');
+
+        if (isSignup) {
+            router.push('/character');
+        } else {
+            let hasCharacter = false;
+            try {
+                hasCharacter = Boolean(localStorage.getItem('freetown-life-player-appearance'));
+            } catch {
+                // Send players without a restorable character through creation.
+            }
+            try {
+                const response = await fetch('/api/player/save', { cache: 'no-store' });
+                if (response.ok) {
+                    const data = await response.json();
+                    const save = data.save;
+                    if (save?.player && typeof save.player === 'object') {
+                        const setup = save.characterSetup ?? {};
+                        const choices = {
+                            appearance: save.player,
+                            traits: Array.isArray(setup.traits) ? setup.traits : [],
+                            dream: typeof save.dream === 'string' ? save.dream : '',
+                            birthOutcome: typeof setup.birthOutcome === 'string' ? setup.birthOutcome : '',
+                            home: typeof setup.home === 'string' ? setup.home : '',
+                        };
+                        const customization = {
+                            Look: choices.appearance,
+                            Personality: choices.traits,
+                            Dream: choices.dream,
+                            'Birth Lottery': choices.birthOutcome,
+                            Home: choices.home,
+                        };
+                        try {
+                            localStorage.setItem('freetown-life-player-appearance', JSON.stringify(choices.appearance));
+                            localStorage.setItem('freetown-life-player-choices', JSON.stringify(choices));
+                            localStorage.setItem('freetown-life-player-customization', JSON.stringify(customization));
+                        } catch {
+                            // The server save remains available even if browser storage is disabled.
+                        }
+                        hasCharacter = true;
+                    }
+                }
+            } catch {
+                // Continue with the local character if the database is unavailable.
+            }
+            router.replace(hasCharacter ? '/' : '/character');
+        }
     }
 
     const inputClass =
@@ -180,8 +230,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
                                     id="loginUsername"
                                     name="username"
                                     autoComplete="username"
-                                    defaultValue={isDevelopment ? DEV_USERNAME : ''}
-                                    placeholder="Enter your username"
+                                    placeholder="Enter your username or email"
                                     required
                                     className={inputClass}
                                 />
@@ -210,16 +259,19 @@ export default function AuthPage({ mode }: AuthPageProps) {
                                         Username
                                     </label>
 
-                                    <input
-                                        id="username"
-                                        name="username"
-                                        autoComplete="username"
-                                        defaultValue="@"
-                                        pattern="@?[A-Za-z0-9_]{3,20}"
-                                        title="Use 3–20 letters, numbers, or underscores after @."
-                                        required
-                                        className={inputClass}
-                                    />
+                                    <div className="flex items-center rounded-full bg-[#f1f3f8] px-5 focus-within:bg-white focus-within:ring-4 focus-within:ring-emerald-600/10">
+                                        <span aria-hidden="true" className="text-base text-[#8995ad] sm:text-[17px]">@</span>
+                                        <input
+                                            id="username"
+                                            name="username"
+                                            autoComplete="username"
+                                            placeholder="aminata"
+                                            pattern="[A-Za-z0-9_]{3,20}"
+                                            title="Use 3–20 letters, numbers, or underscores."
+                                            required
+                                            className="min-w-0 flex-1 bg-transparent px-1 py-3.5 text-base text-slate-800 outline-none placeholder:text-[#8995ad] sm:text-[17px]"
+                                        />
+                                    </div>
 
                                     <p className="mt-2 text-sm leading-5 text-[#63738e]">
                                         This is your Sim&apos;s name in Freetong Life.
@@ -239,7 +291,6 @@ export default function AuthPage({ mode }: AuthPageProps) {
                                 type={showPassword ? 'text' : 'password'}
                                 autoComplete={isSignup ? 'new-password' : 'current-password'}
                                 minLength={isSignup ? 8 : undefined}
-                                defaultValue={!isSignup && isDevelopment ? DEV_PASSWORD : undefined}
                                 placeholder="Enter your password"
                                 required
                                 className={`${inputClass} pr-14`}
@@ -327,15 +378,14 @@ export default function AuthPage({ mode }: AuthPageProps) {
 
                         <button
                             type="submit"
-                            className="w-full rounded-full bg-[#16834a] px-5 py-4 text-base font-bold text-white shadow-md shadow-emerald-900/10 transition hover:bg-[#116d3d] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-600/25 active:scale-[0.99]"
+                            disabled={submitting}
+                            className="w-full rounded-full bg-[#16834a] px-5 py-4 text-base font-bold text-white shadow-md shadow-emerald-900/10 transition hover:bg-[#116d3d] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-600/25 active:scale-[0.99] disabled:cursor-wait disabled:opacity-70"
                         >
-                            {isSignup ? 'Create your character' : 'Log in to Lagos Life'}
+                            {submitting ? 'Please wait…' : isSignup ? 'Create your account' : 'Log in to Freetong Life'}
                         </button>
 
                         <p className="pt-1 text-center text-xs leading-5 text-[#8490a5]">
-                            {isDevelopment
-                                ? 'Development mode · demo credentials are prefilled.'
-                                : 'Prototype mode · Authentication is not connected yet.'}
+                            Your account is saved securely and your game progress syncs when you sign in.
                         </p>
                     </form>
                 </section>

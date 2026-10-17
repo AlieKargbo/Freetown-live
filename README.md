@@ -34,6 +34,14 @@ Run `npm run test:realtime` to check presence and movement broadcasting. The ser
 
 This is an anonymous prototype: player IDs are created per browser tab, and the current client-side signup does not authenticate users to the WebSocket service. Do not expose it as a trusted production service until server-side authentication and authorization are added.
 
+## Local PostgreSQL
+
+The app stores registered player accounts, login sessions, and game saves in PostgreSQL. Set `DATABASE_URL` in `.env.local` (see `.env.example`); the database user needs permission to create tables in the selected database. The app creates the required `players`, `player_sessions`, and `player_saves` tables on its first API request.
+
+Restart `npm run dev` after changing `.env.local`. Accounts created before PostgreSQL was connected only exist in that browser and must be created again through `/signup` to use database-backed login. Game saves still keep a browser-local copy for offline recovery and sync to PostgreSQL when the player is signed in.
+
+The local `.env.local` file contains credentials and is ignored by Git. Use a separate database and strong credentials before deploying; a computer's `localhost` database is not reachable by a hosted deployment.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

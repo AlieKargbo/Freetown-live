@@ -5,13 +5,14 @@ import CharacterCreator, {
   type PlayerChoices,
 } from './CharacterCreator';
 import { game } from '../utils/Store';
-import { PLAYER_HOME_INFO } from '../zoned/Interior/playerHomeInfo';
+import { createPlayerHomeInfo } from '../zoned/Interior/playerHomeInfo';
 import { HOMES } from './CharacterData';
 
 export default function CharacterCreationPage() {
   const router = useRouter();
 
-  function handleComplete(choices: PlayerChoices) {
+  async function handleComplete(choices: PlayerChoices) {
+    const loadingStartedAt = Date.now();
     const customization = {
       Look: choices.appearance,
       Personality: choices.traits,
@@ -37,22 +38,39 @@ export default function CharacterCreationPage() {
         'lagos-life-welcome-tour-pending',
         'true',
       );
+      localStorage.removeItem('lagos-life-welcome-tour-completed');
     } catch {
       // Continue into the game if storage is unavailable.
     }
 
-    const homeChoice = HOMES.find((option) => option.name === choices.home);
-    const playerHome = {
-      ...PLAYER_HOME_INFO,
-      name: choices.home,
-      area: homeChoice?.area ?? PLAYER_HOME_INFO.area,
-    };
+    const homeChoice = HOMES.find((option) => option.name === choices.home) ?? HOMES[0];
+    const playerHome = createPlayerHomeInfo(homeChoice);
 
     game.setPlayer(choices.appearance);
     game.setDream(choices.dream);
+    game.setCharacterSetup({
+      traits: choices.traits,
+      birthOutcome: choices.birthOutcome,
+      home: choices.home,
+    });
     game.setPlayerHome(playerHome);
     game.enter(playerHome);
-    console.log('Player customization after move-in:', customization);
+
+    const saveResponse = await fetch('/api/player/save', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(game.getSave()),
+    });
+    if (!saveResponse.ok) {
+      const result = await saveResponse.json().catch(() => null);
+      throw new Error(result?.error ?? 'Could not save your choices to your account. Check your connection and try again.');
+    }
+
+    const minimumLoadingMs = 700;
+    const remainingLoadingMs = minimumLoadingMs - (Date.now() - loadingStartedAt);
+    if (remainingLoadingMs > 0) {
+      await new Promise((resolve) => window.setTimeout(resolve, remainingLoadingMs));
+    }
 
     router.replace('/');
   }

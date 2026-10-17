@@ -38,8 +38,9 @@ import NeedActivityStatus from './utils/NeedActivityStatus';
 import TravelTransition from './utils/TravelTransition';
 import { calculateMood } from '@/app/Game/needs';
 import { PLAYER_HOME_INFO } from './zoned/Interior/playerHomeInfo';
+import { getGameClock } from '@/app/Game/clock';
 
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import WelcomeTour from './zoned/Interior/WelcomeTour';
 
 // View from the screenshot: looking north from the south, tilted ~49° from straight down.
@@ -283,31 +284,37 @@ export default function WorldCanvas() {
     const multiplayerStatus = useGame((s) => s.multiplayerStatus);
     const multiplayerError = useGame((s) => s.multiplayerError);
     const playersHere = interior
-        ? remotePlayers.filter((remotePlayer) => remotePlayer.buildingId === interior.id).length + (travel ? 0 : 1)
+        ? (interior.id === 'player-home' ? 0 : remotePlayers.filter((remotePlayer) => remotePlayer.buildingId === interior.id).length) + (travel ? 0 : 1)
         : 0;
     const [authChecked, setAuthChecked] = useState(false);
+    const [requiresSaveHydration, setRequiresSaveHydration] = useState(false);
+    const [saveReady, setSaveReady] = useState(false);
     const [showWelcomeTour, setShowWelcomeTour] = useState(false);
-    const [lightingTime, setLightingTime] = useState(() => new Date());
-    const hour = lightingTime.getHours() + lightingTime.getMinutes() / 60;
-    const daylight = Math.max(0, Math.sin(((hour - 6) / 12) * Math.PI));
-    const night = 1 - daylight;
+    const [lightingTime, setLightingTime] = useState(() => getGameClock());
+    const { hourOfDay, daylight, night } = lightingTime;
+    const citySkyColor = new THREE.Color('#101a34').lerp(new THREE.Color('#22d3ee'), daylight);
+    const oceanColor = new THREE.Color('#082f49').lerp(new THREE.Color('#38bdf8'), daylight);
+    const handleSaveReady = useCallback(() => setSaveReady(true), []);
 
     useEffect(() => {
-        const timer = window.setInterval(() => setLightingTime(new Date()), 30_000);
+        const timer = window.setInterval(() => setLightingTime(getGameClock()), 1000);
         return () => window.clearInterval(timer);
     }, []);
 
     useEffect(() => {
         try {
-            game.setAuthenticated(localStorage.getItem(AUTH_STORAGE_KEY) === 'true');
+            const isAuthenticated = localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
+            setRequiresSaveHydration(isAuthenticated);
+            game.setAuthenticated(isAuthenticated);
         } catch {
+            setRequiresSaveHydration(false);
             game.setAuthenticated(false);
         }
         setAuthChecked(true);
     }, []);
 
     useEffect(() => {
-        if (interior?.id !== 'player-home') {
+        if (!saveReady || interior?.id !== 'player-home') {
             setShowWelcomeTour(false);
             return;
         }
@@ -323,7 +330,7 @@ export default function WorldCanvas() {
         } catch {
             setShowWelcomeTour(false);
         }
-    }, [interior?.id]);
+    }, [interior?.id, saveReady]);
 
     const openHome = () => {
         const home = playerHome ?? PLAYER_HOME_INFO;
@@ -340,8 +347,8 @@ export default function WorldCanvas() {
     };
     return (
         <div className="relative h-screen w-full overflow-hidden bg-cyan-400">
-            <NeedSimulation active={authChecked && (authenticated || Boolean(player))} />
-            <GamePersistence />
+            <NeedSimulation active={authChecked && saveReady && (authenticated || Boolean(player))} />
+            <GamePersistence onReady={handleSaveReady} />
             <Canvas
                 dpr={[1, 1.5]}
                 camera={{
@@ -355,16 +362,17 @@ export default function WorldCanvas() {
                 {interior ? (
                     <>
                         {/* Render the selected building's interior */}
-                        <InteriorScene info={interior} hour={hour} daylight={daylight} night={night} />
+                        <InteriorScene info={interior} hour={hourOfDay} daylight={daylight} night={night} />
                     </>
                 ) : (
                     <>
                         {/* City map */}
-                        <color attach="background" args={['#22d3ee']} />
-                        <ambientLight intensity={0.8} />
+                        <color attach="background" args={[citySkyColor]} />
+                        <ambientLight intensity={0.08 + daylight * 0.72} color={night > 0.7 ? '#9db9ff' : '#ffffff'} />
                         <directionalLight
-                            position={[10, 20, 10]}
-                            intensity={1.5}
+                            position={[Math.cos(((hourOfDay - 6) / 12) * Math.PI) * 10, 3 + daylight * 17, 10]}
+                            color={daylight > 0.15 ? '#fff1d6' : '#9db9ff'}
+                            intensity={0.02 + daylight * 1.48}
                             castShadow
                         />
 
@@ -374,7 +382,7 @@ export default function WorldCanvas() {
                             position={[0, -0.2, 0]}
                         >
                             <planeGeometry args={[100, 100]} />
-                            <meshStandardMaterial color="#38bdf8" />
+                            <meshStandardMaterial color={oceanColor} />
                         </mesh>
 
                         {/* Atlantic label */}
@@ -476,6 +484,16 @@ export default function WorldCanvas() {
                     </>
                 )}
             </Canvas>
+
+            {(!authChecked || (requiresSaveHydration && !saveReady)) && (
+                <div className="pointer-events-auto absolute inset-0 z-[200] flex items-center justify-center bg-slate-950/55 px-5 backdrop-blur-sm" role="status" aria-live="polite">
+                    <div className="flex w-full max-w-sm flex-col items-center rounded-3xl border border-white/70 bg-white px-8 py-9 text-center shadow-2xl">
+                        <span aria-hidden="true" className="mb-5 h-11 w-11 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-500" />
+                        <h1 className="text-xl font-extrabold text-slate-900">Preparing your home</h1>
+                        <p className="mt-2 text-sm text-slate-500">Loading your Sim and saved progress…</p>
+                    </div>
+                </div>
+            )}
 
 
             {/* Building information popup */}

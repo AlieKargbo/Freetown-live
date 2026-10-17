@@ -4,7 +4,7 @@ import type { ReactElement } from 'react';
 import { Html } from '@react-three/drei';
 import type { FurnitureSpec, FurnitureType } from './Info';
 import { ACTIVITY_CONTEXTS, type NeedActivityContext } from '@/app/Game/needActions';
-import { game } from './Store';
+import { game, useGame } from './Store';
 
 type V3 = [number, number, number];
 type P = { color?: string; size?: [number, number] };
@@ -301,6 +301,7 @@ const ACTIVITY_LABELS: Record<string, string> = {
 };
 
 export default function Furniture({ type, at, rot = 0, color, size, interactive = true }: FurnitureSpec & { interactive?: boolean }) {
+  const interactionPromptsHidden = useGame((state) => state.interactionPromptsHidden);
   const Part = PARTS[type];
   const action = ACTIVITY_CONTEXTS[type as NeedActivityContext];
   const buildingId = game.get().interior?.id;
@@ -314,7 +315,7 @@ export default function Furniture({ type, at, rot = 0, color, size, interactive 
   return (
     <group position={[at[0], 0, at[1]]} rotation={[0, rot, 0]}>
       <Part color={color} size={size} />
-      {interactive && action && venueAllowsAction && (
+      {interactive && action && venueAllowsAction && !interactionPromptsHidden && (
         <Html position={[0, 2.15, 0]} center distanceFactor={12} style={{ pointerEvents: 'auto' }}>
           <button
             type="button"

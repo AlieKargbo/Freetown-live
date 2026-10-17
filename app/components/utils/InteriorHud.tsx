@@ -47,18 +47,16 @@ type InteriorHudProps = {
 
 import type { BuildingInfo } from './Info';
 import { CURRENCY, game, playersIn, useGame } from './Store';
+import useGameClock from './useGameClock';
+import { formatGameTime } from '@/app/Game/clock';
 
 const number = new Intl.NumberFormat('en');
 
 function Clock() {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const i = setInterval(() => setNow(new Date()), 30_000);
-    return () => clearInterval(i);
-  }, []);
-  const night = now.getHours() >= 19 || now.getHours() < 6;
-  const day = `${now.toLocaleDateString('en', { weekday: 'short' })} ${now.getDate()}`;
-  const time = now.toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' });
+  const clock = useGameClock();
+  const night = !clock.isDay;
+  const day = `Day ${clock.day}`;
+  const time = formatGameTime(clock);
   return (
     <span className="flex items-center gap-2 font-semibold text-slate-800">
       <span>{night ? '🌙' : '☀️'}</span>

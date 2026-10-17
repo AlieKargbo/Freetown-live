@@ -45,7 +45,7 @@ const STEPS = [
 export default function CharacterCreator({
     onComplete,
 }: {
-    onComplete?: (choices: PlayerChoices) => void;
+    onComplete?: (choices: PlayerChoices) => void | Promise<void>;
 }) {
     const signupUsername = useGame(state => state.playerUsername);
     const [appearance, setAppearance] = useState<SimAppearance>(() => ({
@@ -58,6 +58,8 @@ export default function CharacterCreator({
     const [dream, setDream] = useState('');
     const [birthOutcome, setBirthOutcome] = useState('');
     const [home, setHome] = useState('Self-contain');
+    const [isMovingIn, setIsMovingIn] = useState(false);
+    const [moveInError, setMoveInError] = useState('');
 
     const update = useCallback(
         <K extends keyof SimAppearance>(
@@ -106,7 +108,10 @@ export default function CharacterCreator({
         });
     };
 
-    const finish = () => {
+    const finish = async () => {
+        if (isMovingIn) return;
+        setIsMovingIn(true);
+        setMoveInError('');
         const choices: PlayerChoices = {
             appearance,
             traits,
@@ -128,14 +133,18 @@ export default function CharacterCreator({
             // Continue even if browser storage is unavailable.
         }
 
-        onComplete?.(choices);
-
-        if (!onComplete) {
-            window.dispatchEvent(
-                new CustomEvent('freetong-life:character-created', {
-                    detail: choices,
-                }),
-            );
+        try {
+            await onComplete?.(choices);
+            if (!onComplete) {
+                window.dispatchEvent(
+                    new CustomEvent('freetong-life:character-created', {
+                        detail: choices,
+                    }),
+                );
+            }
+        } catch (error) {
+            setMoveInError(error instanceof Error ? error.message : 'Could not save your character. Please try again.');
+            setIsMovingIn(false);
         }
     };
 
@@ -270,8 +279,19 @@ export default function CharacterCreator({
                 }
                 finish={finish}
                 canContinue={canContinue}
+                isMovingIn={isMovingIn}
+                moveInError={moveInError}
 
             />
+            {isMovingIn && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-5 backdrop-blur-sm" role="status" aria-live="polite">
+                    <div className="flex w-full max-w-sm flex-col items-center rounded-3xl border border-white/70 bg-white px-8 py-9 text-center shadow-2xl">
+                        <span aria-hidden="true" className="mb-5 h-11 w-11 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-500" />
+                        <h1 className="text-xl font-extrabold text-slate-900">Moving into your new home</h1>
+                        <p className="mt-2 text-sm text-slate-500">Saving your choices and preparing your Sim…</p>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

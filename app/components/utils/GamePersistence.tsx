@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { game, type SavedGameProgress } from './Store';
+import { AUTH_STORAGE_KEY, game, type SavedGameProgress } from './Store';
 
 const SAVE_KEY = 'freetown-life-game-save-v2';
 const LEGACY_SAVE_KEY = 'freetown-life-game-save-v1';
@@ -17,8 +17,32 @@ function readSelectedDream(): string | null {
   }
 }
 
-export default function GamePersistence() {
+export default function GamePersistence({ onReady }: { onReady?: () => void }) {
   useEffect(() => {
+    let active = true;
+    let unsubscribe: (() => void) | undefined;
+    let saveTimer: number | undefined;
+
+    const persist = async () => {
+      const next = JSON.stringify(game.getSave());
+      try {
+        localStorage.setItem(SAVE_KEY, next);
+      } catch {
+        // Keep playing if browser storage is full or unavailable.
+      }
+      if (localStorage.getItem(AUTH_STORAGE_KEY) !== 'true') return;
+      try {
+        await fetch('/api/player/save', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: next,
+          keepalive: true,
+        });
+      } catch {
+        // A local save remains available while PostgreSQL is offline.
+      }
+    };
+
     try {
       const saved = localStorage.getItem(SAVE_KEY);
       if (saved) {
@@ -45,32 +69,50 @@ export default function GamePersistence() {
       // Ignore a missing or malformed local save and start a fresh session.
     }
 
-    let lastSaved = JSON.stringify(game.getSave());
-    let saveTimer: number | undefined;
-    const save = () => {
+    const startSaving = () => {
+      if (!active) return;
+      let lastSaved = JSON.stringify(game.getSave());
+      const save = () => {
       const next = JSON.stringify(game.getSave());
       if (next === lastSaved) return;
       lastSaved = next;
+        void persist();
+      };
+      unsubscribe = game.subscribe(() => {
+        window.clearTimeout(saveTimer);
+        saveTimer = window.setTimeout(save, 500);
+      });
+      window.addEventListener('pagehide', persist);
+    };
+
+    const hydrateFromDatabase = async () => {
       try {
-        localStorage.setItem(SAVE_KEY, next);
+        const signedIn = localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
+        if (signedIn) {
+          const response = await fetch('/api/player/save', { cache: 'no-store' });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.save && typeof data.save === 'object') game.restoreSave(data.save);
+            else await persist();
+          }
+        }
       } catch {
-        // Keep playing if storage is full or unavailable.
+        // Continue from the local save when the database cannot be reached.
+      } finally {
+        startSaving();
+        onReady?.();
       }
     };
-    const unsubscribe = game.subscribe(() => {
-      window.clearTimeout(saveTimer);
-      saveTimer = window.setTimeout(save, 250);
-    });
-    const saveOnExit = () => save();
-    window.addEventListener('pagehide', saveOnExit);
+    void hydrateFromDatabase();
 
     return () => {
+      active = false;
       window.clearTimeout(saveTimer);
-      save();
-      unsubscribe();
-      window.removeEventListener('pagehide', saveOnExit);
+      unsubscribe?.();
+      window.removeEventListener('pagehide', persist);
+      void persist();
     };
-  }, []);
+  }, [onReady]);
 
   return null;
 }

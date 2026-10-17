@@ -50,6 +50,7 @@ export default function PlayerStatusBar({
   const messages = useGame((state) => state.messages);
   const walletTransfers = useGame((state) => state.walletTransfers);
   const multiplayerStatus = useGame((state) => state.multiplayerStatus);
+  const multiplayerError = useGame((state) => state.multiplayerError);
   const purchases = useGame((state) => state.purchases);
   const hasCafeJob = useGame((state) => state.hasCafeJob);
   const isOnCafeShift = useGame((state) => state.isOnCafeShift);
@@ -121,6 +122,10 @@ export default function PlayerStatusBar({
   const sendPhoneMessage = () => {
     const text = messageDraft.trim();
     if (!activeContact || !text) return;
+    if (multiplayerStatus !== 'connected') {
+      setPhoneNotice(multiplayerError || 'Wait for multiplayer to connect before sending messages.');
+      return;
+    }
     const id = sendPlayerMessage(activeContact, text);
     if (!id) {
       setPhoneNotice('Connect to multiplayer before sending messages.');
@@ -139,6 +144,10 @@ export default function PlayerStatusBar({
     }
     if (amount > money) {
       setPhoneNotice('Your wallet balance is too low for that payment.');
+      return;
+    }
+    if (multiplayerStatus !== 'connected') {
+      setPhoneNotice(multiplayerError || 'Wait for multiplayer to connect before sending a payment.');
       return;
     }
     const id = sendPlayerPayment(activeContact, amount);
@@ -841,7 +850,7 @@ export default function PlayerStatusBar({
                                   </div>
                                 </div>
                               ) : <p className="rounded-xl bg-white/80 p-3 text-xs text-slate-600">Add a username, then select that player to chat.</p>}
-                              <p className="text-center text-[10px] text-white drop-shadow">{multiplayerStatus === 'connected' ? 'Messages are connected' : 'Connect to multiplayer to send and receive'}</p>
+                              <p className="text-center text-[10px] text-white drop-shadow">{multiplayerStatus === 'connected' ? 'Messages are connected' : multiplayerError || (multiplayerStatus === 'connecting' ? 'Connecting to multiplayer…' : 'Reconnect to multiplayer to send and receive')}</p>
                             </div>
                           )}
 

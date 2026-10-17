@@ -112,6 +112,35 @@ function Window({ x, z, daylight }: { x: number; z: number; daylight: number }) 
     );
 }
 
+function WallSconce({
+    position,
+    rotation = 0,
+    night,
+}: {
+    position: [number, number, number];
+    rotation?: number;
+    night: number;
+}) {
+    return (
+        <group position={position} rotation={[0, rotation, 0]}>
+            <mesh castShadow>
+                <boxGeometry args={[0.28, 0.34, 0.08]} />
+                <meshStandardMaterial color="#76502d" roughness={0.7} />
+            </mesh>
+            <mesh position={[0, 0, 0.12]}>
+                <sphereGeometry args={[0.15, 16, 12]} />
+                <meshStandardMaterial
+                    color="#fff0bd"
+                    emissive="#ffb347"
+                    emissiveIntensity={0.25 + night * 0.9}
+                    roughness={0.3}
+                />
+            </mesh>
+            <pointLight position={[0, 0, 0.22]} color="#ffd18a" intensity={0.2 + night * 2} distance={8} decay={2} />
+        </group>
+    );
+}
+
 function RemotePlayerAvatar({
     player,
     bounds,
@@ -170,7 +199,9 @@ export default function InteriorScene({ info, hour, daylight, night }: { info: B
         ? [0, 0]
         : [doorX, -d / 2 + 1.1];
     const distance = 12 + Math.max(w, d) * 0.85;
-    const buildingPlayers = remotePlayers.filter((remotePlayer) => remotePlayer.buildingId === info.id);
+    const buildingPlayers = info.id === 'player-home'
+        ? []
+        : remotePlayers.filter((remotePlayer) => remotePlayer.buildingId === info.id);
 
     useEffect(() => {
         target.current = null;
@@ -248,6 +279,13 @@ export default function InteriorScene({ info, hour, daylight, night }: { info: B
             </mesh>
             <Door x={doorX} z={-d / 2 + 0.03} />
             <Window x={-w / 2 + 0.03} z={d * 0.18} daylight={daylight} />
+
+            {info.id === 'player-home' && (
+                <>
+                    <WallSconce position={[0, 2.05, -d / 2 + 0.13]} night={night} />
+                    <WallSconce position={[-w / 2 + 0.13, 2.05, 0.7]} rotation={Math.PI / 2} night={night} />
+                </>
+            )}
 
             {furniture.map((f, i) => (
                 <Furniture key={i} {...f} />
