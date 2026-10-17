@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import Avatar from './Avatar';
 import Furniture from './Furniture';
 import type { BuildingInfo } from '../../utils/Info';
-import { hash, playersIn, useGame } from '../../utils/Store';
+import { useGame } from '../../utils/Store';
 
 // Corner view like the reference screenshots: 45° around, tilted down. Only pan and zoom are allowed.
 const TILT = 0.95; // radians from straight-down
@@ -15,22 +15,6 @@ const AZIMUTH = Math.PI / 4;
 const TARGET: [number, number, number] = [0, 0.6, 0];
 const WALL_H = 2.8;
 const WALL_T = 0.2;
-
-const NAMES = [
-  'yonugdani', 'Ewaola12', 'temi_gotcrazy', 'Mr_speed', 'jasmean', 'coolgcg', 'feg', 'valoriyke',
-  'young_chief001', 'Kaeinlagos', 'Bililki_Eko', 'goodluck2242', 'certified_OGE', 'therealviyon', 'ognationaffairs',
-];
-const SHIRTS = ['#ef4444', '#3b82f6', '#facc15', '#22c55e', '#a855f7', '#f97316', '#ec4899', '#14b8a6', '#f8fafc'];
-const SKINS = ['#8d5524', '#c68642', '#e0ac69', '#5b3a1e', '#3a2412'];
-
-function rng(seed: number) {
-  return () => {
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
@@ -127,19 +111,6 @@ export default function InteriorScene({ info }: { info: BuildingInfo }) {
 
   const floorTex = useMemo(() => makeChecker(floor[0], floor[1], w, d), [floor, w, d]);
 
-  const npcs = useMemo(() => {
-    const n = playersIn(info.id) - 1; // you are one of the players
-    const base = hash(info.id);
-    const r = rng(base);
-    return Array.from({ length: n }, (_, i) => ({
-      name: NAMES[(base + i * 7) % NAMES.length],
-      shirt: SHIRTS[Math.floor(r() * SHIRTS.length)],
-      skin: SKINS[Math.floor(r() * SKINS.length)],
-      start: [(r() * 2 - 1) * (w / 2 - 1), (r() * 2 - 1) * (d / 2 - 1)] as [number, number],
-      seed: i + 1,
-    }));
-  }, [info.id, w, d]);
-
   const bounds: [number, number] = [w / 2 - 0.7, d / 2 - 0.7];
   const doorX = -w / 2 + 1.3;
   const distance = 12 + Math.max(w, d) * 1.1;
@@ -202,9 +173,6 @@ export default function InteriorScene({ info }: { info: BuildingInfo }) {
         <Furniture key={i} {...f} />
       ))}
 
-      {npcs.map((n) => (
-        <Avatar key={n.name} name={n.name} shirt={n.shirt} skin={n.skin} start={n.start} bounds={bounds} seed={n.seed} />
-      ))}
       <Avatar
         name={player?.name ?? 'you'}
         shirt={playerShirt}

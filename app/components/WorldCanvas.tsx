@@ -33,6 +33,7 @@ import BuildingPopup from './utils/BuildingPopup';
 //import InteriorHud from './utils/InteriorHud';
 import { AUTH_STORAGE_KEY, game, useGame } from './utils/Store';
 import NeedSimulation from './utils/NeedSimulation';
+import GamePersistence from './utils/GamePersistence';
 import NeedActivityStatus from './utils/NeedActivityStatus';
 import TravelTransition from './utils/TravelTransition';
 import { calculateMood } from '@/app/Game/needs';
@@ -271,14 +272,30 @@ function LumelyConnectorRoad() {
 
 export default function WorldCanvas() {
     const interior = useGame((s) => s.interior);
+    const travel = useGame((s) => s.travel);
     const popup = useGame((s) => s.popup);
     const money = useGame((s) => s.money);
     const authenticated = useGame((s) => s.authenticated);
     const player = useGame((s) => s.player);
     const playerHome = useGame((s) => s.playerHome);
     const needs = useGame((s) => s.needs);
+    const remotePlayers = useGame((s) => s.remotePlayers);
+    const multiplayerStatus = useGame((s) => s.multiplayerStatus);
+    const multiplayerError = useGame((s) => s.multiplayerError);
+    const playersHere = interior
+        ? remotePlayers.filter((remotePlayer) => remotePlayer.buildingId === interior.id).length + (travel ? 0 : 1)
+        : 0;
     const [authChecked, setAuthChecked] = useState(false);
     const [showWelcomeTour, setShowWelcomeTour] = useState(false);
+    const [lightingTime, setLightingTime] = useState(() => new Date());
+    const hour = lightingTime.getHours() + lightingTime.getMinutes() / 60;
+    const daylight = Math.max(0, Math.sin(((hour - 6) / 12) * Math.PI));
+    const night = 1 - daylight;
+
+    useEffect(() => {
+        const timer = window.setInterval(() => setLightingTime(new Date()), 30_000);
+        return () => window.clearInterval(timer);
+    }, []);
 
     useEffect(() => {
         try {
@@ -324,6 +341,7 @@ export default function WorldCanvas() {
     return (
         <div className="relative h-screen w-full overflow-hidden bg-cyan-400">
             <NeedSimulation active={authChecked && (authenticated || Boolean(player))} />
+            <GamePersistence />
             <Canvas
                 dpr={[1, 1.5]}
                 camera={{
@@ -336,17 +354,8 @@ export default function WorldCanvas() {
                 <SceneCamera interior={interior} />
                 {interior ? (
                     <>
-                        {/* Interior lighting and background */}
-                        <color attach="background" args={['#0b1437']} />
-                        <ambientLight intensity={0.75} />
-                        <directionalLight
-                            position={[8, 14, 6]}
-                            intensity={1.1}
-                            castShadow
-                        />
-
                         {/* Render the selected building's interior */}
-                        <InteriorScene info={interior} />
+                        <InteriorScene info={interior} hour={hour} daylight={daylight} night={night} />
                     </>
                 ) : (
                     <>
@@ -473,6 +482,24 @@ export default function WorldCanvas() {
             <BuildingPopup />
             <NeedActivityStatus />
             <TravelTransition />
+            {interior && !travel && (
+                <aside
+                    className="pointer-events-none absolute right-3 top-3 z-40 max-w-xs rounded-2xl bg-slate-950/75 px-4 py-3 text-sm text-white shadow-lg backdrop-blur"
+                    role="status"
+                    aria-live="polite"
+                >
+                    <p className="font-bold">{playersHere} player{playersHere === 1 ? '' : 's'} here now</p>
+                    <p className="mt-1 text-xs text-slate-200">
+                        {multiplayerStatus === 'connected'
+                            ? 'Multiplayer connected'
+                            : multiplayerStatus === 'connecting'
+                                ? 'Connecting to multiplayer…'
+                                : multiplayerStatus === 'error'
+                                    ? multiplayerError ?? 'Multiplayer unavailable'
+                                    : 'Multiplayer disconnected'}
+                    </p>
+                </aside>
+            )}
 
             {/* City-map HUD: signup, login, status bar and home entry */}
             {authChecked && (
@@ -484,14 +511,14 @@ export default function WorldCanvas() {
                     mood={calculateMood(needs)}
                     gemCount={9166}
                     nextGemPrize={3000}
-                    chips={[
-                        {
-                            icon: '🏠',
-                            label: 'Enter my home',
-                            onClick: openHome,
-                        },
-                    ]}
-                    headline="Explore Freetown, find a place to call home."
+                    // chips={[
+                    //     {
+                    //         icon: '🏠',
+                    //         label: 'Enter my home',
+                    //         onClick: openHome,
+                    //     },
+                    // ]}
+                    headline="Explore Freetown, find a place to call home, and meet other Freetonians."
                 />
             )}
 
@@ -518,4 +545,3 @@ export default function WorldCanvas() {
         </div>
     );
 }
-

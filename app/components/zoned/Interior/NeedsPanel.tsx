@@ -34,7 +34,8 @@ export default function NeedsPanel({
               </div>
 
               <span className="flex-1 font-semibold text-slate-800">
-                {item.label}
+                {item.key === 'bladder' ? 'Bladder fullness' : item.label}
+                {item.key === 'bladder' && <span className="mt-0.5 block text-xs font-normal text-slate-500">Rises over time · use a toilet to empty it.</span>}
               </span>
 
               <span className="text-sm font-semibold text-slate-500">
@@ -45,7 +46,7 @@ export default function NeedsPanel({
             <div
               className="ml-15 h-2.5 overflow-hidden rounded-full bg-slate-100"
               role="progressbar"
-              aria-label={item.label}
+              aria-label={item.key === 'bladder' ? 'Bladder fullness' : item.label}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={value}
@@ -54,7 +55,7 @@ export default function NeedsPanel({
                 className="h-full rounded-full transition-[width] duration-300"
                 style={{
                   width: `${value}%`,
-                  backgroundColor: item.color,
+                  backgroundColor: item.key === 'bladder' && value >= 75 ? '#ef4444' : item.color,
                 }}
               />
             </div>

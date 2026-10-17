@@ -297,15 +297,24 @@ const PARTS: Record<FurnitureType, (p: P) => ReactElement> = {
 const ACTIVITY_LABELS: Record<string, string> = {
   bed: 'Sleep', sofa: 'Take a nap', table: 'Eat', counter: 'Have a snack',
   shower: 'Take a shower', toilet: 'Use the toilet', tv: 'Play a game', stage: 'Dance',
+  pitch: 'Play a match',
 };
 
 export default function Furniture({ type, at, rot = 0, color, size, interactive = true }: FurnitureSpec & { interactive?: boolean }) {
   const Part = PARTS[type];
   const action = ACTIVITY_CONTEXTS[type as NeedActivityContext];
+  const buildingId = game.get().interior?.id;
+  const venueAllowsAction = action === 'dance'
+    ? buildingId === 'night-club'
+    : action === 'play_sport'
+      ? buildingId === 'youth-sport-center'
+      : action === 'eat' || action === 'snack'
+        ? false
+        : true;
   return (
     <group position={[at[0], 0, at[1]]} rotation={[0, rot, 0]}>
       <Part color={color} size={size} />
-      {interactive && action && (
+      {interactive && action && venueAllowsAction && (
         <Html position={[0, 2.15, 0]} center distanceFactor={12} style={{ pointerEvents: 'auto' }}>
           <button
             type="button"

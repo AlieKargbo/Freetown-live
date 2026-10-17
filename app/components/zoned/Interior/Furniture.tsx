@@ -1,6 +1,6 @@
 'use client';
 
-import type { FurnitureSpec } from '../../Player/Info';
+import type { FurnitureSpec } from '../../utils/Info';
 
 const FURNITURE_HEIGHT: Record<FurnitureSpec['type'], number> = {
   bed: 0.45,
@@ -21,6 +21,8 @@ const FURNITURE_HEIGHT: Record<FurnitureSpec['type'], number> = {
   pitch: 0.04,
   crate: 0.55,
   machine: 1.3,
+  shower: 1.9,
+  toilet: 0.6,
 };
 
 export default function Furniture({

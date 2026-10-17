@@ -1,19 +1,13 @@
 'use client';
 
-import type { ZoneConfig, ZoneProps } from '../../WorldCanvas';
+import type { ZoneConfig } from '../../../WorldCanvas';
 
 export const zone: ZoneConfig = {
   id: 'ikoyi',
   c: [-4, 15],
   size: [14, 9],
   color: '#d8dbc9',
-  trees: true,
-  roads: [
-    { p: [-4, 12], s: [14, 0.8] },
-    { p: [-4, 9.25], s: [1.2, 3.2] }, // causeway to Lagos Island
-  ],
-  signs: [{ p: [2, 11.4], color: '#ec4899' }],
-  label: { text: 'EKO ATLANTIC', pos: [-4, 0.05, 19], size: 0.45 },
+  label: { text: 'EKO ATLANTIC', size: 0.45 },
 };
 
 function Plane() {
@@ -50,7 +44,7 @@ function Helipad() {
   );
 }
 
-export default function IkoyiZone(_: ZoneProps) {
+export default function IkoyiZone() {
   return (
     <>
       <Plane />

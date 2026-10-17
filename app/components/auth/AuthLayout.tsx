@@ -5,7 +5,11 @@ import { useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Crown, Eye, EyeOff } from 'lucide-react';
-import { AUTH_STORAGE_KEY, game } from '../utils/Store';
+import {
+    AUTH_STORAGE_KEY,
+    PLAYER_USERNAME_STORAGE_KEY,
+    game,
+} from '../utils/Store';
 
 const DEV_USERNAME = 'player';
 const DEV_PASSWORD = 'freetown';
@@ -55,6 +59,10 @@ export default function AuthPage({ mode }: AuthPageProps) {
             );
             game.setAuthenticated(true);
             try {
+                localStorage.setItem(
+                    PLAYER_USERNAME_STORAGE_KEY,
+                    username.startsWith('@') ? username : `@${username}`,
+                );
                 localStorage.setItem(AUTH_STORAGE_KEY, 'true');
             } catch {
                 // Keep the in-memory session active if storage is unavailable.
@@ -76,8 +84,10 @@ export default function AuthPage({ mode }: AuthPageProps) {
             return;
         }
 
+        game.setPlayerUsername(`@${DEV_USERNAME}`);
         game.setAuthenticated(true);
         try {
+            localStorage.setItem(PLAYER_USERNAME_STORAGE_KEY, `@${DEV_USERNAME}`);
             localStorage.setItem(AUTH_STORAGE_KEY, 'true');
         } catch {
             // Keep the in-memory session active if storage is unavailable.

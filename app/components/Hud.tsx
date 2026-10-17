@@ -112,10 +112,17 @@ export default function Hud({
             <span className="truncate text-lg font-extrabold tracking-tight text-slate-800">Freetown Life</span>
             <span className="hidden items-center gap-1.5 text-sm font-semibold text-emerald-600 sm:flex">
               <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-              {compact.format(online)} online
+              
+              {/* {compact.format(online)}  */}
+              
+              online
             </span>
             <span className="hidden items-center gap-1.5 text-sm font-semibold text-slate-500 md:flex">
-              👀 {compact.format(visits)} visits
+              👀 
+              
+              {/* {compact.format(visits)} */}
+              
+               visits
             </span>
           </div>
           <div className="flex shrink-0 items-center gap-1">
@@ -161,7 +168,11 @@ export default function Hud({
               ))}
             </div>
             <p className="text-sm text-slate-500">
-              <span className="font-bold text-slate-800">{compact.format(online)} Freetowners</span> playing right now · free
+              <span className="font-bold text-slate-800">
+                
+                {/* {compact.format(online)}  */}
+                
+                Freetonians</span> playing right now · free
             </p>
           </div>
 

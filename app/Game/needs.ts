@@ -15,7 +15,7 @@ export const INITIAL_NEEDS: SimNeeds = {
   fun: 100,
   social: 100,
   hygiene: 100,
-  bladder: 100,
+  bladder: 0,
 };
 
 export const NEED_DECAY_PER_MINUTE: SimNeeds = {
@@ -56,10 +56,8 @@ export function advanceNeeds(
   const next = { ...needs };
 
   for (const need of Object.keys(next) as NeedName[]) {
-    next[need] = clampNeed(
-      next[need] -
-        NEED_DECAY_PER_MINUTE[need] * elapsedMinutes,
-    );
+    const direction = need === 'bladder' ? 1 : -1;
+    next[need] = clampNeed(next[need] + direction * NEED_DECAY_PER_MINUTE[need] * elapsedMinutes);
   }
 
   // Sleeping restores energy and reduces the rate of other needs.
@@ -80,8 +78,12 @@ export function advanceNeeds(
 
 export type SimMood = "Miserable" | "Unhappy" | "Uncomfortable" | "Okay" | "Happy";
 
+export function needSatisfaction(needs: SimNeeds, need: NeedName): number {
+  return need === 'bladder' ? 100 - needs.bladder : needs[need];
+}
+
 export function calculateMood(needs: SimNeeds): SimMood {
-  const lowestNeed = Math.min(...Object.values(needs));
+  const lowestNeed = Math.min(...NEED_NAMES.map((need) => needSatisfaction(needs, need)));
   if (lowestNeed <= 10) return "Miserable";
   if (lowestNeed <= 25) return "Unhappy";
   if (lowestNeed <= 50) return "Uncomfortable";

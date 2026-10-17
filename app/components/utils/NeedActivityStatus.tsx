@@ -6,6 +6,7 @@ const LABELS: Record<string, string> = {
   eat: 'Eating', snack: 'Having a snack', sleep: 'Sleeping', nap: 'Taking a nap',
   shower: 'Showering', toilet: 'Using the toilet', chat: 'Talking',
   call_friend: 'Calling a friend', play_game: 'Playing a game', dance: 'Dancing',
+  play_sport: 'Playing sports',
 };
 
 export default function NeedActivityStatus() {

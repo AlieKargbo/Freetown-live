@@ -16,6 +16,7 @@ import {
   ShoppingBag,
 } from 'lucide-react';
 import PlayerStatusBar from '../Interior/PlayerStatusBar';
+import { useGame } from '../../utils/Store';
 
 type GameHUDProps = {
   onOpenJobs?: () => void;
@@ -46,6 +47,11 @@ export default function GameHUD({
   avatar,
   showNeeds = true,
 }: GameHUDProps) {
+  const hasCafeJob = useGame((state) => state.hasCafeJob);
+  const shiftsCompleted = useGame((state) => state.shiftsCompleted);
+  const firstDayComplete = useGame((state) => state.firstDayComplete);
+  const skillGoalRewarded = useGame((state) => state.skillGoalRewarded);
+  const interiorId = useGame((state) => state.interior?.id ?? null);
   const [clean, setClean] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [panelTab, setPanelTab] = useState<string | null>(null);
@@ -70,6 +76,31 @@ export default function GameHUD({
     setMenuOpen(false);
     setPanelTab(tab);
   };
+
+  const openJobs = () => {
+    setMenuOpen(false);
+    if (onOpenJobs) onOpenJobs();
+    else setPanelTab('Career');
+  };
+
+  const firstDayTitle = firstDayComplete && !skillGoalRewarded
+    ? 'Grow a skill to level 2'
+    : firstDayComplete
+      ? 'First day complete!'
+    : !hasCafeJob
+      ? 'Accept your first job'
+      : shiftsCompleted === 0
+        ? 'Complete your first shift'
+        : 'Buy your first item';
+  const firstDayDetail = firstDayComplete && !skillGoalRewarded
+    ? 'Earn a SLE5,000 skill goal reward'
+    : firstDayComplete
+      ? 'First-day and skill rewards earned'
+    : !hasCafeJob
+      ? 'Start at the Ice Cream Cafe'
+      : shiftsCompleted === 0
+        ? 'Work at the cafe in Lumley'
+        : 'Spend some of your first paycheck';
 
   const toggleClean = () => {
     if (!clean) {
@@ -123,7 +154,7 @@ export default function GameHUD({
       {!clean && (
         <aside className="pointer-events-auto absolute left-3 top-[100px] flex max-w-[min(290px,75vw)] flex-col gap-2 sm:left-5 sm:top-[136px]">
           <button
-            onClick={onOpenJobs}
+            onClick={firstDayComplete ? () => openPanel('Goals') : shiftsCompleted > 0 ? () => openPanel('Buy') : openJobs}
             className="flex items-center gap-3 rounded-full bg-white/95 px-3 py-2 text-left shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:bg-white sm:px-4"
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-lg">
@@ -131,10 +162,10 @@ export default function GameHUD({
             </span>
             <span className="min-w-0">
               <span className="block text-sm font-bold text-slate-800">
-                Get a job
+                {firstDayTitle}
               </span>
               <span className="block text-xs text-slate-500">
-                Open Phone → Jobs
+                {firstDayDetail}
               </span>
             </span>
           </button>
@@ -222,7 +253,7 @@ export default function GameHUD({
             <button
               onClick={() => {
                 setMenuOpen(false);
-                onOpenJobs?.();
+                openJobs();
               }}
               className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
             >
@@ -283,11 +314,11 @@ export default function GameHUD({
         {/* Buy */}
         <button
           type="button"
-          onClick={() => openPanel('Buy')}
+          onClick={() => openPanel(interiorId === 'fish-grill' ? 'Food' : 'Buy')}
           className="flex w-32 flex-col items-center rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
         >
           <ShoppingBag size={18} aria-hidden="true" />
-          Buy
+          {interiorId === 'fish-grill' ? 'Food' : 'Buy'}
         </button>
 
         {/* Map */}

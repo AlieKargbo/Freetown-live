@@ -34,7 +34,7 @@ export default function CharacterCreationPage() {
         JSON.stringify(choices),
       );
       localStorage.setItem(
-        'freetong-life-welcome-tour-pending',
+        'lagos-life-welcome-tour-pending',
         'true',
       );
     } catch {
@@ -49,6 +49,7 @@ export default function CharacterCreationPage() {
     };
 
     game.setPlayer(choices.appearance);
+    game.setDream(choices.dream);
     game.setPlayerHome(playerHome);
     game.enter(playerHome);
     console.log('Player customization after move-in:', customization);

@@ -6,6 +6,7 @@ import { Center, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import CustomizedSimModel from '../Game-setup/CustomizedSimModel';
 import type { SimAppearance } from '../Game-setup/CharacterData';
+import { game } from './Store';
 
 type Props = {
   name: string;
@@ -20,7 +21,9 @@ type Props = {
   say?: string | null;
   isYou?: boolean;
   appearance?: SimAppearance;
+  targetPlayerName?: string;
   seed?: number;
+  onPosition?: (position: [number, number], target: [number, number] | null) => void;
 };
 
 const SPEED = 0.8; // units per second
@@ -34,24 +37,26 @@ function GLBAvatar({ appearance }: { appearance: SimAppearance }) {
 }
 
 // Blocky low-poly person. Legs and arms swing while it walks.
-export default function Avatar({ name, shirt, skin, pants = '#1f2937', start, bounds, target, say, isYou = false, appearance, seed = 1 }: Props) {
+export default function Avatar({ name, shirt, skin, pants = '#1f2937', start, bounds, target: targetRef, say, isYou = false, appearance, targetPlayerName, seed = 1, onPosition }: Props) {
   const group = useRef<THREE.Group>(null);
   const legL = useRef<THREE.Group>(null);
   const legR = useRef<THREE.Group>(null);
   const armL = useRef<THREE.Group>(null);
   const armR = useRef<THREE.Group>(null);
-  const s = useRef({ x: start[0], z: start[1], goal: null as [number, number] | null, wait: seed % 3, t: seed * 3, yaw: 0 });
+  const s = useRef({ x: start[0], z: start[1], goal: null as [number, number] | null, wait: seed % 3, t: seed * 3, yaw: 0, publishElapsed: 0 });
+  const lastPublished = useRef({ x: start[0], z: start[1], goal: '' });
 
   useFrame((_, dt) => {
     const g = group.current;
     if (!g) return;
     const st = s.current;
     st.t += dt;
+    st.publishElapsed += dt;
 
-    if (target) {
-      if (target.current) {
-        st.goal = target.current;
-        target.current = null;
+    if (targetRef) {
+      if (targetRef.current) {
+        st.goal = targetRef.current;
+        targetRef.current = null;
       }
     } else if (!st.goal) {
       st.wait -= dt;
@@ -84,10 +89,27 @@ export default function Avatar({ name, shirt, skin, pants = '#1f2937', start, bo
     if (legR.current) legR.current.rotation.x = -swing;
     if (armL.current) armL.current.rotation.x = -swing * 0.8;
     if (armR.current) armR.current.rotation.x = swing * 0.8;
+    if (onPosition && st.publishElapsed >= 0.2) {
+      st.publishElapsed = 0;
+      const goal = st.goal ? `${st.goal[0]},${st.goal[1]}` : '';
+      if (Math.hypot(st.x - lastPublished.current.x, st.z - lastPublished.current.z) >= 0.1 || goal !== lastPublished.current.goal) {
+        lastPublished.current = { x: st.x, z: st.z, goal };
+        onPosition([st.x, st.z], st.goal);
+      }
+    }
   });
 
   return (
-    <group ref={group} position={[start[0], 0, start[1]]} scale={1.15}>
+    <group
+      ref={group}
+      position={[start[0], 0, start[1]]}
+      scale={1.15}
+      onClick={(event) => {
+        if (isYou) return;
+        event.stopPropagation();
+        game.startActivity('chat', 'person', targetPlayerName ?? name);
+      }}
+    >
       {appearance ? (
         <Suspense fallback={null}>
           <GLBAvatar appearance={appearance} />

@@ -1,13 +1,13 @@
 'use client';
 
-import { useLayoutEffect, useMemo, useRef, useCallback } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 'react';
 import { useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import Avatar from './Avatar';
 import Furniture from './Furniture';
 import type { BuildingInfo } from './Info';
-import { hash, playersIn, useGame } from './Store';
+import { game, useGame, type MultiplayerPlayer } from './Store';
 import { INITIAL } from '../Game-setup/CharacterData';
 import PlayerHomeDetails from '../zoned/Interior/PlayerHomeDetails';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
@@ -24,22 +24,6 @@ const ROOM_TARGET: [number, number, number] = [0, 0.8, 0];
 
 const WALL_H = 2.8;
 const WALL_T = 0.2;
-
-const NAMES = [
-    'yonugdani', 'Ewaola12', 'temi_gotcrazy', 'Mr_speed', 'jasmean', 'coolgcg', 'feg', 'valoriyke',
-    'young_chief001', 'Kaeinlagos', 'Bililki_Eko', 'goodluck2242', 'certified_OGE', 'therealviyon', 'ognationaffairs',
-];
-const SHIRTS = ['#ef4444', '#3b82f6', '#facc15', '#22c55e', '#a855f7', '#f97316', '#ec4899', '#14b8a6', '#f8fafc'];
-const SKINS = ['#8d5524', '#c68642', '#e0ac69', '#5b3a1e', '#3a2412'];
-
-function rng(seed: number) {
-    return () => {
-        seed = (seed + 0x6d2b79f5) | 0;
-        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-}
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
@@ -103,7 +87,7 @@ function Door({ x, z }: { x: number; z: number }) {
     );
 }
 
-function Window({ x, z }: { x: number; z: number }) {
+function Window({ x, z, daylight }: { x: number; z: number; daylight: number }) {
     return (
         <group position={[x, 1.6, z]}>
             <mesh>
@@ -112,7 +96,11 @@ function Window({ x, z }: { x: number; z: number }) {
             </mesh>
             <mesh position={[0.02, 0, 0]}>
                 <boxGeometry args={[0.04, 1.1, 1.85]} />
-                <meshStandardMaterial color="#7dd3fc" emissive="#38bdf8" emissiveIntensity={0.25} />
+                <meshStandardMaterial
+                    color={daylight > 0.25 ? '#bae6fd' : '#334155'}
+                    emissive={daylight > 0.25 ? '#38bdf8' : '#f59e0b'}
+                    emissiveIntensity={0.08 + (1 - daylight) * 0.35}
+                />
             </mesh>
             {Array.from({ length: 8 }, (_, i) => (
                 <mesh key={i} position={[0.05, -0.5 + i * 0.14, 0]}>
@@ -121,6 +109,33 @@ function Window({ x, z }: { x: number; z: number }) {
                 </mesh>
             ))}
         </group>
+    );
+}
+
+function RemotePlayerAvatar({
+    player,
+    bounds,
+}: {
+    player: MultiplayerPlayer;
+    bounds: [number, number];
+}) {
+    const target = useRef<[number, number] | null>(player.target);
+
+    useEffect(() => {
+        target.current = player.target;
+    }, [player.target]);
+
+    return (
+        <Avatar
+            name={player.name}
+            shirt={player.appearance.accent}
+            skin={player.appearance.skin}
+            start={player.position}
+            bounds={bounds}
+            target={target}
+            appearance={player.appearance}
+            targetPlayerName={player.name}
+        />
     );
 }
 
@@ -140,28 +155,14 @@ function Window({ x, z }: { x: number; z: number }) {
 //     controls.update();
 // }, []);
 
-export default function InteriorScene({ info }: { info: BuildingInfo }) {
+export default function InteriorScene({ info, hour, daylight, night }: { info: BuildingInfo; hour: number; daylight: number; night: number }) {
     const { size, floor, wall, ground, furniture } = info.interior;
     const [w, d] = size;
     const chat = useGame((s) => s.chat);
     const player = useGame((s) => s.player);
+    const remotePlayers = useGame((s) => s.remotePlayers);
     const target = useRef<[number, number] | null>(null);
     const floorTex = useMemo(() => makeChecker(floor[0], floor[1], w, d), [floor, w, d]);
-
-    const npcs = useMemo(() => {
-        if (info.id === 'player-home') return [];
-
-        const n = playersIn(info.id) - 1; // you are one of the players
-        const base = hash(info.id);
-        const r = rng(base);
-        return Array.from({ length: n }, (_, i) => ({
-            name: NAMES[(base + i * 7) % NAMES.length],
-            shirt: SHIRTS[Math.floor(r() * SHIRTS.length)],
-            skin: SKINS[Math.floor(r() * SKINS.length)],
-            start: [(r() * 2 - 1) * (w / 2 - 1), (r() * 2 - 1) * (d / 2 - 1)] as [number, number],
-            seed: i + 1,
-        }));
-    }, [info.id, w, d]);
 
     const bounds: [number, number] = [w / 2 - 0.7, d / 2 - 0.7];
     const doorX = -w / 2 + 1.3;
@@ -169,6 +170,15 @@ export default function InteriorScene({ info }: { info: BuildingInfo }) {
         ? [0, 0]
         : [doorX, -d / 2 + 1.1];
     const distance = 12 + Math.max(w, d) * 0.85;
+    const buildingPlayers = remotePlayers.filter((remotePlayer) => remotePlayer.buildingId === info.id);
+
+    useEffect(() => {
+        target.current = null;
+        const initialPosition: [number, number] = info.id === 'player-home'
+            ? [0, 0]
+            : [doorX, -d / 2 + 1.1];
+        game.reportPlayerMovement(initialPosition, null);
+    }, [info.id, doorX, d]);
 
     // Sugar Loaf uses a dedicated landslide memorial scene.
     if (info.id === 'sugar-loaf') {
@@ -178,11 +188,15 @@ export default function InteriorScene({ info }: { info: BuildingInfo }) {
     return (
         <>
 
-            <color attach="background" args={['#0b1437']} />
-            <ambientLight intensity={0.75} />
-            <directionalLight position={[8, 14, 6]} intensity={0.9} />
-            <pointLight position={[-w / 2 + 0.6, 2.3, -d / 2 + 0.6]} intensity={10} distance={12} color="#ffcf8a" />
-            <pointLight position={[w / 2 - 1, 2.6, d / 2 - 1]} intensity={5} distance={12} color="#ffe2b0" />
+            <color attach="background" args={[daylight > 0.15 ? '#a8c9df' : '#101a34']} />
+            <hemisphereLight args={['#d8efff', '#8b735b', 0.2 + daylight * 0.55]} />
+            <directionalLight
+                position={[Math.cos(((hour - 6) / 12) * Math.PI) * 10, 3 + daylight * 12, 6]}
+                color={daylight > 0.2 ? '#fff1d6' : '#9db9ff'}
+                intensity={0.12 + daylight * 1.05}
+            />
+            <pointLight position={[-w / 2 + 0.6, 2.3, -d / 2 + 0.6]} intensity={2 + night * 7} distance={12} color="#ffcf8a" />
+            <pointLight position={[w / 2 - 1, 2.6, d / 2 - 1]} intensity={1 + night * 4} distance={12} color="#ffe2b0" />
 
             <IsometricCamera distance={distance} />
 
@@ -233,25 +247,27 @@ export default function InteriorScene({ info }: { info: BuildingInfo }) {
                 <meshStandardMaterial color="#e7e5e4" />
             </mesh>
             <Door x={doorX} z={-d / 2 + 0.03} />
-            <Window x={-w / 2 + 0.03} z={d * 0.18} />
+            <Window x={-w / 2 + 0.03} z={d * 0.18} daylight={daylight} />
 
             {furniture.map((f, i) => (
                 <Furniture key={i} {...f} />
             ))}
 
-            {npcs.map((n) => (
-                <Avatar key={n.name} name={n.name} shirt={n.shirt} skin={n.skin} start={n.start} bounds={bounds} seed={n.seed} />
+            {buildingPlayers.map((remotePlayer) => (
+                <RemotePlayerAvatar key={remotePlayer.id} player={remotePlayer} bounds={bounds} />
             ))}
             <Avatar
-                name="you"
+                key={`local-${info.id}`}
+                name={player?.name ?? 'you'}
                 shirt="#f59e0b"
-                skin="#8d5524"
+                skin={player?.skin ?? '#8d5524'}
                 start={playerStart}
                 bounds={bounds}
                 target={target}
                 say={chat?.text ?? null}
                 isYou
-                appearance={info.id === 'player-home' ? (player ?? INITIAL) : undefined}
+                appearance={player ?? INITIAL}
+                onPosition={game.reportPlayerMovement}
             />
 
             <OrbitControls

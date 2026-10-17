@@ -8,7 +8,7 @@ type WelcomeTourProps = {
 
 const TOUR_STEPS = [
   {
-    title: 'Welcome to Lagos!',
+    title: 'Welcome to Freetown!',
     description: 'Quick tour, under one minute. Oya!',
     emoji: '👋🏾',
   },
@@ -38,7 +38,7 @@ const TOUR_STEPS = [
     emoji: '🗺️',
   },
   {
-    title: 'Your Lagos story starts now',
+    title: 'Your Freetown story starts now',
     description: 'You are home. Go out, explore, and make it yours!',
     emoji: '✨',
   },

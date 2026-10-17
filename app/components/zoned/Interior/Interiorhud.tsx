@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { BuildingInfo } from '../../utils/Info';
-import { CURRENCY, game, playersIn, useGame } from '../../utils/Store';
+import { CURRENCY, game, useGame } from '../../utils/Store';
 
 import { PLAYER_HOME_INFO } from './playerHomeInfo';
 
@@ -17,7 +17,6 @@ export default function InteriorHud({ info }: { info: BuildingInfo }) {
     const [text, setText] = useState('');
     const [open, setOpen] = useState(true);
     const [copied, setCopied] = useState(false);
-    const players = playersIn(info.id);
 
     const send = () => {
         const t = text.trim();
