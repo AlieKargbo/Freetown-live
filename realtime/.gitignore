@@ -1,0 +1,12 @@
+# Dependencies
+node_modules/
+
+# Wrangler local state & build artifacts
+.wrangler/
+dist/
+
+# Local environment variables / secrets
+.dev.vars
+.dev.vars.*
+.env
+.env.*
